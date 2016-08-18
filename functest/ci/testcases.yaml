@@ -256,6 +256,15 @@ tiers:
                     installer: ''
                     scenario: '(ocl)|(nosdn)|^(os-odl)((?!bgpvpn).)*$'
             -
+                name: vnf_test
+                criteria: 'status == "PASS"'
+                blocking: false
+                description: >-
+                    This test case deploys VNF. using the Cloudify orchestrator.
+                dependencies:
+                    installer: ''
+                    scenario: '(ocl)|(nosdn)|^(os-odl)((?!bgpvpn).)*$'
+            -
                 name: parser
                 criteria: 'status == "PASS"'
                 blocking: false

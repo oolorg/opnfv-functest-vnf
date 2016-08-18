@@ -6,6 +6,7 @@ general:
         dir_rally:         testcases/OpenStack/rally/
         dir_tempest_cases: testcases/OpenStack/tempest/custom_tests/
         dir_vIMS:          testcases/vnf/vIMS/
+        dir_vnf_test:      testcases/vnf/vnf/
         dir_onos:          testcases/Controllers/ONOS/Teston/
         dir_onos_sfc:           testcases/Controllers/ONOS/Sfc/
 
@@ -16,6 +17,7 @@ general:
         dir_repo_tempest:   /home/opnfv/repos/tempest
         dir_repo_releng:    /home/opnfv/repos/releng
         dir_repo_vims_test: /home/opnfv/repos/vims-test
+        dir_repo_vnf_test:  /home/opnfv/repos/vnf-test
         dir_repo_bgpvpn:    /home/opnfv/repos/bgpvpn
         dir_repo_onos:      /home/opnfv/repos/onos
         dir_repo_promise:   /home/opnfv/repos/promise
@@ -30,6 +32,7 @@ general:
         dir_rally_res:      /home/opnfv/functest/results/rally/
         dir_functest_data:  /home/opnfv/functest/data
         dir_vIMS_data:      /home/opnfv/functest/data/vIMS
+        dir_vnf_test_data:  /home/opnfv/functest/data/vnf
         dir_rally_inst:     /home/opnfv/.rally
 
     openstack:
@@ -133,6 +136,30 @@ vIMS:
             agent_user: 'ubuntu'
             external_network_name: ''
             public_domain: clearwater.opnfv
+vnf_test:
+    general:
+        tenant_name: vnf_test
+        tenant_description: VNF Testing
+        images:
+            ubuntu:
+                image_url: 'http://cloud-images.ubuntu.com/trusty/current/trusty-server-cloudimg-amd64-disk1.img'
+                image_name: ubuntu_14.04
+    vnf:
+        blueprint:
+            url: https://github.com/oolorg/opnfv-vnf-vyos-blueprint.git
+            branch: "master"
+        requierments:
+            ram_min: 2000
+            os_image: vyos-snapshot
+        inputs:
+            keystone_username: ""
+            keystone_password: ""
+            keystone_tenant_name: ""
+            keystone_url: ""
+            image_id: ""
+            flavor_id: "3"
+            external_network_name: ""
+            ssh_user: vyos
 ONOS:
     general:
         onosbench_username: 'root'
