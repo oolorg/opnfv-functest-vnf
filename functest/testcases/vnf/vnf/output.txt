@@ -1,3 +1,0 @@
-/home/opnfv/functest/data/vnf/cloudify-blueprint has not been initialized with a blueprint.
-Possible solutions:
-  - Run 'cfy local init' in this directory
