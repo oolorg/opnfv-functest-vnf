@@ -144,6 +144,28 @@ vnf_test:
             ubuntu:
                 image_url: 'http://cloud-images.ubuntu.com/trusty/current/trusty-server-cloudimg-amd64-disk1.img'
                 image_name: ubuntu_14.04
+            centos:
+                image_url: 'http://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud-1510.qcow2'
+                image_name: centos_7
+    cloudify:
+        blueprint:
+            url: https://github.com/boucherv-orange/cloudify-manager-blueprints.git
+            branch: "3.3.1-build"
+        requierments:
+            ram_min: 3000
+            os_image: centos_7
+        inputs:
+            keystone_username: ""
+            keystone_password: ""
+            keystone_tenant_name: ""
+            keystone_url: ""
+            manager_public_key_name: 'manager-kp'
+            agent_public_key_name: 'agent-kp'
+            image_id: ""
+            flavor_id: "3"
+            external_network_name: ""
+            ssh_user: centos
+            agents_user: ubuntu
     vnf:
         blueprint:
             url: https://github.com/oolorg/opnfv-vnf-vyos-blueprint.git

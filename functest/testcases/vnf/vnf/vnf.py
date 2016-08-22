@@ -71,11 +71,17 @@ TENANT_DESCRIPTION = functest_yaml.get("vnf_test").get(
     "general").get("tenant_description")
 IMAGES = functest_yaml.get("vnf_test").get("general").get("images")
 
+CFY_MANAGER_BLUEPRINT = functest_yaml.get(
+    "vnf_test").get("cloudify").get("blueprint")
+CFY_MANAGER_REQUIERMENTS = functest_yaml.get(
+    "vnf_test").get("cloudify").get("requierments")
+CFY_INPUTS = functest_yaml.get("vnf_test").get("cloudify").get("inputs")
+
 CFY_VNF_BLUEPRINT = functest_yaml.get(
     "vnf_test").get("vnf").get("blueprint")
 CFY_VNF_REQUIERMENTS = functest_yaml.get(
     "vnf_test").get("vnf").get("requierments")
-CFY_INPUTS = functest_yaml.get("vnf_test").get("vnf").get("inputs")
+#CFY_INPUTS = functest_yaml.get("vnf_test").get("vnf").get("inputs")
 
 CFY_DEPLOYMENT_DURATION = 0
 
@@ -231,24 +237,25 @@ def main():
         step_failure(
             "init", "Failed to update cinder quota for tenant " + TENANT_NAME)
 
-
-    # ############### VNF INITIALISATION ################
+    # ###############ﾂ| CLOUDIFY INITIALISATION ################
+    public_auth_url = keystone.service_catalog.url_for(
+        service_type='identity', endpoint_type='publicURL')
 
     cfy = orchestrator(VNF_DATA_DIR, CFY_INPUTS, logger)
 
     cfy.set_credentials(username=ks_creds['username'], password=ks_creds[
                         'password'], tenant_name=ks_creds['tenant_name'],
-                        auth_url=ks_creds['auth_url'])
+                        auth_url=public_auth_url)
 
-    logger.info("Collect flavor id for vnf")
+    logger.info("Collect flavor id for cloudify manager server")
     nova = nvclient.Client("2", **nv_creds)
 
-    flavor_name = "m1.medium"
+    flavor_name = "m1.large"
     flavor_id = os_utils.get_flavor_id(nova, flavor_name)
-    for requirement in CFY_VNF_REQUIERMENTS:
+    for requirement in CFY_MANAGER_REQUIERMENTS:
         if requirement == 'ram_min':
             flavor_id = os_utils.get_flavor_id_by_ram_range(
-                nova, CFY_VNF_REQUIERMENTS['ram_min'], 8196)
+                nova, CFY_MANAGER_REQUIERMENTS['ram_min'], 10000)
 
     if flavor_id == '':
         logger.error(
@@ -262,17 +269,17 @@ def main():
 
     cfy.set_flavor_id(flavor_id)
 
-    image_name = "vyos_snapshot"
+    image_name = "centos_7"
     image_id = os_utils.get_image_id(glance, image_name)
-    for requirement in CFY_VNF_REQUIERMENTS:
+    for requirement in CFY_MANAGER_REQUIERMENTS:
         if requirement == 'os_image':
             image_id = os_utils.get_image_id(
-                glance, CFY_VNF_REQUIERMENTS['os_image'])
+                glance, CFY_MANAGER_REQUIERMENTS['os_image'])
 
     if image_id == '':
         step_failure(
             "orchestrator",
-            "Error : Failed to find required OS image for vnf")
+            "Error : Failed to find required OS image for cloudify manager")
 
     cfy.set_image_id(image_id)
 
@@ -282,6 +289,15 @@ def main():
 
     cfy.set_external_network_name(ext_net)
 
+    ns = functest_utils.get_resolvconf_ns()
+    if ns:
+        cfy.set_nameservers(ns)
+
+    if 'compute' in nova.client.services_url:
+        cfy.set_nova_url(nova.client.services_url['compute'])
+    if neutron.httpclient.endpoint_url is not None:
+        cfy.set_neutron_url(neutron.httpclient.endpoint_url)
+
     logger.info("Prepare virtualenv for cloudify-cli")
     cmd = "chmod +x " + VNF_DIR + "create_venv.sh"
     functest_utils.execute_command(cmd, logger)
@@ -289,24 +305,28 @@ def main():
     cmd = VNF_DIR + "create_venv.sh " + VNF_DATA_DIR
     functest_utils.execute_command(cmd, logger)
 
-    cfy.download_blueprint(
-        CFY_VNF_BLUEPRINT['url'], CFY_VNF_BLUEPRINT['branch'])
+    cfy.download_manager_blueprint(
+        CFY_MANAGER_BLUEPRINT['url'], CFY_MANAGER_BLUEPRINT['branch'])
 
-    # ############### VNF DEPLOYMENT ################
+    # ###############ﾂ| CLOUDIFY DEPLOYMENT ################
     start_time_ts = time.time()
     end_time_ts = start_time_ts
-    logger.info("VNF deployment Start Time:'%s'" % (
+    logger.info("Cloudify deployment Start Time:'%s'" % (
         datetime.datetime.fromtimestamp(start_time_ts).strftime(
             '%Y-%m-%d %H:%M:%S')))
 
-    error = cfy.deploy()
+    error = cfy.deploy_manager()
     if error:
         step_failure("orchestrator", error)
 
     end_time_ts = time.time()
     duration = round(end_time_ts - start_time_ts, 1)
-    logger.info("VNF deployment duration:'%s'" % duration)
+    logger.info("Cloudify deployment duration:'%s'" % duration)
     set_result("orchestrator", duration, "")
+
+    # ########### VNF DEPLOYMENT #############
+
+#TODO
 
 
     # ########### CLOUDIFY UNDEPLOYMENT #############
