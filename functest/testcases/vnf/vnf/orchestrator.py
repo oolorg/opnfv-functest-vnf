@@ -2,8 +2,6 @@
 # coding: utf8
 #######################################################################
 #
-#   Copyright (c) 2015 Orange
-#   valentin.boucher@orange.com
 #
 # All rights reserved. This program and the accompanying materials
 # are made available under the terms of the Apache License, Version 2.0

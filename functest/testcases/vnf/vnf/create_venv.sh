@@ -3,8 +3,6 @@
 # Script checks that venv exists. If it doesn't it will be created
 # It requires python2.7 and virtualenv packages installed
 #
-#   Copyright (c) 2015 Orange
-#   valentin.boucher@orange.com
 #
 # All rights reserved. This program and the accompanying materials
 # are made available under the terms of the Apache License, Version 2.0
