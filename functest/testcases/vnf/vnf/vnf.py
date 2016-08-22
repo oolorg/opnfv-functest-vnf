@@ -315,7 +315,7 @@ def main():
         datetime.datetime.fromtimestamp(start_time_ts).strftime(
             '%Y-%m-%d %H:%M:%S')))
 
-#    error = cfy.deploy_manager()
+    error = cfy.deploy_manager()
     if error:
         step_failure("orchestrator", error)
 
@@ -331,7 +331,7 @@ def main():
 
     # ########### CLOUDIFY UNDEPLOYMENT #############
 
-#    cfy.undeploy()
+    cfy.undeploy()
 
     # ############## GENERAL CLEANUP ################
     if args.noclean:
