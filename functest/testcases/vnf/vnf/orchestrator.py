@@ -177,10 +177,10 @@ class orchestrator:
         script += ("cfy deployments create -b " + bp_name +
                    " -d " + dep_name + " --inputs inputs.yaml; ")
         script += ("cfy executions start -w install -d " +
-                   dep_name + " --timeout 1800; ")
+                   dep_name + " --timeout 7200; ")
 
         cmd = "/bin/bash -c '" + script + "'"
-        error = execute_command(cmd, self.logger, 2000)
+        error = execute_command(cmd, self.logger, 7200)
         if error:
             return error
         if self.logger:
@@ -192,7 +192,7 @@ class orchestrator:
         script = "source " + self.testcase_dir + "venv_cloudify/bin/activate; "
         script += "cd " + self.testcase_dir + "; "
         script += ("cfy executions start -w uninstall -d " + dep_name +
-                   " --timeout 1800 ; ")
+                   " --timeout 7200 ; ")
         script += "cfy deployments delete -d " + dep_name + "; "
 
         cmd = "/bin/bash -c '" + script + "'"
@@ -203,7 +203,7 @@ class orchestrator:
                 self.logger.error("Clearwater undeployment failed")
 
 
-def execute_command(cmd, logger, timeout=60):
+def execute_command(cmd, logger, timeout=7200):
     """
     Execute Linux command
     """

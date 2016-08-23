@@ -291,10 +291,6 @@ def main():
     if ns:
         cfy.set_nameservers(ns)
 
-    if 'compute' in nova.client.services_url:
-        cfy.set_nova_url(nova.client.services_url['compute'])
-    if neutron.httpclient.endpoint_url is not None:
-        cfy.set_neutron_url(neutron.httpclient.endpoint_url)
 
     logger.info("Prepare virtualenv for cloudify-cli")
     cmd = "chmod +x " + VNF_DIR + "create_venv.sh"
@@ -329,7 +325,7 @@ def main():
 
     # ########### CLOUDIFY UNDEPLOYMENT #############
 
-    cfy.undeploy()
+    cfy.undeploy_manager()
 
     # ############## GENERAL CLEANUP ################
     if args.noclean:
