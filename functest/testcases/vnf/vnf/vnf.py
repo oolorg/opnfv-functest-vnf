@@ -29,6 +29,7 @@ import functest.utils.functest_utils as functest_utils
 import functest.utils.openstack_utils as os_utils
 
 from orchestrator import orchestrator
+from topology import topology
 
 pp = pprint.PrettyPrinter(indent=4)
 
@@ -75,13 +76,20 @@ CFY_MANAGER_REQUIERMENTS = functest_yaml.get(
     "vnf_test").get("cloudify").get("requierments")
 CFY_INPUTS = functest_yaml.get("vnf_test").get("cloudify").get("inputs")
 
-CFY_VNF_BLUEPRINT = functest_yaml.get(
-    "vnf_test").get("vnf").get("blueprint")
-CFY_VNF_REQUIERMENTS = functest_yaml.get(
-    "vnf_test").get("vnf").get("requierments")
-#CFY_INPUTS = functest_yaml.get("vnf_test").get("vnf").get("inputs")
+
+TPLGY_BLUEPRINT = functest_yaml.get("vnf_test").get("vnf_topology").get("blueprint")
+TPLGY_DEPLOYMENT_NAME = functest_yaml.get("vnf_test").get(
+    "vnf_topology").get("deployment-name")
+TPLGY_INPUTS = functest_yaml.get("vnf_test").get("vnf_topology").get("inputs")
+TPLGY_REQUIERMENTS = functest_yaml.get("vnf_test").get(
+    "vnf_topology").get("requierments")
+TPLGY_FLAVOR_ID = functest_yaml.get("vnf_test").get("vnf_topology").get("flavor_id")
+
 
 CFY_DEPLOYMENT_DURATION = 0
+TPLGY_DEPLOYMENT_DURATION = 0
+
+
 
 TESTCASE_START_TIME = time.time()
 RESULTS = {'orchestrator': {'duration': 0, 'result': ''},
@@ -131,7 +139,7 @@ def set_result(step_name, duration=0, result=""):
 
 def main():
 
-    # ############### GENERAL INITIALISATION ################
+    # ###############?GENERAL INITIALISATION ################
 
     if not os.path.exists(VNF_DATA_DIR):
         os.makedirs(VNF_DATA_DIR)
@@ -236,6 +244,7 @@ def main():
             "init", "Failed to update cinder quota for tenant " + TENANT_NAME)
 
     # ###############ﾂ| CLOUDIFY INITIALISATION ################
+
     public_auth_url = keystone.service_catalog.url_for(
         service_type='identity', endpoint_type='publicURL')
 
@@ -302,6 +311,45 @@ def main():
     cfy.download_manager_blueprint(
         CFY_MANAGER_BLUEPRINT['url'], CFY_MANAGER_BLUEPRINT['branch'])
 
+
+    tplgy = topology(TPLGY_INPUTS, cfy, logger)
+
+    logger.info("Collect flavor id for all topology vm")
+    nova = nvclient.Client("2", **nv_creds)
+
+
+    #todo make flavor
+    flavor_id == TPLGY_FLAVOR_ID
+
+    if flavor_id == '':
+        for requirement in TPLGY_REQUIERMENTS:
+            if requirement == 'ram_min':
+                flavor_id = os_utils.get_flavor_id_by_ram_range(
+                    nova, TPLGY_REQUIERMENTS['ram_min'], 8196)
+        logger.info("flavor id search set")
+
+    tplgy.set_flavor_id(flavor_id)
+
+    image_name = "vyos1.1.7"
+    image_id = os_utils.get_image_id(glance, image_name)
+    for requirement in TPLGY_REQUIERMENTS:
+        if requirement == 'os_image':
+            image_id = os_utils.get_image_id(
+                glance, TPLGY_REQUIERMENTS['os_image'])
+
+    if image_id == '':
+        step_failure(
+            "vnt_test",
+            "Error : Failed to find required OS image for cloudify manager")
+
+    tplgy.set_image_id(image_id)
+
+    ext_net = os_utils.get_external_net(neutron)
+    if not ext_net:
+        step_failure("vnt_test", "Failed to get external network")
+
+    tplgy.set_external_network_name(ext_net)
+
     # ###############ﾂ| CLOUDIFY DEPLOYMENT ################
     start_time_ts = time.time()
     end_time_ts = start_time_ts
@@ -318,14 +366,29 @@ def main():
     logger.info("Cloudify deployment duration:'%s'" % duration)
     set_result("orchestrator", duration, "")
 
-    # ########### VNF DEPLOYMENT #############
 
-#TODO
+    # ###############? VNF TOPOLOGY DEPLOYMENT ################
+
+    start_time_ts = time.time()
+    end_time_ts = start_time_ts
+    logger.info("vnt_test VNF deployment Start Time:'%s'" % (
+        datetime.datetime.fromtimestamp(start_time_ts).strftime(
+            '%Y-%m-%d %H:%M:%S')))
+
+    # deploy
+    error = tplgy.deploy_vnf(TPLGY_BLUEPRINT)
+    if error:
+        step_failure("vnt_test", error)
+
+    end_time_ts = time.time()
+    duration = round(end_time_ts - start_time_ts, 1)
+    logger.info("vnt_test VNF deployment duration:'%s'" % duration)
+    set_result("vnt_test", duration, "")
 
 
-    # ########### CLOUDIFY UNDEPLOYMENT #############
+    # ###########?CLOUDIFY UNDEPLOYMENT #############
 
-    cfy.undeploy_manager()
+#    cfy.undeploy_manager()
 
     # ############## GENERAL CLEANUP ################
     if args.noclean:
@@ -360,3 +423,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
