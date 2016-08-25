@@ -184,7 +184,6 @@ vnf_test:
             image_id: "419b046a-4362-448f-a0a9-8dd3f9b18568"
             flavor_id: "3"
             external_network_name: ""
-            ssh_user: vyos
 
 ONOS:
     general:
