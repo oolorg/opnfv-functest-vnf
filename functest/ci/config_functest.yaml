@@ -144,15 +144,15 @@ vnf_test:
             ubuntu:
                 image_url: 'http://cloud-images.ubuntu.com/trusty/current/trusty-server-cloudimg-amd64-disk1.img'
                 image_name: ubuntu_14.04
-            centos:
-                image_url: 'http://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud-1510.qcow2'
-                image_name: centos_7
+            vyos:
+                image_url: 'https://sourceforge.net/projects/ool-opnfv/files/vyos-1.1.7.img'
+                image_name: vyos1.1.7
     cloudify:
         blueprint:
             url: https://github.com/boucherv-orange/cloudify-manager-blueprints.git
             branch: "3.3.1-build"
         requierments:
-            ram_min: 3000
+            ram_min: 8000
             os_image: centos_7
         inputs:
             keystone_username: ""
@@ -166,22 +166,26 @@ vnf_test:
             external_network_name: ""
             ssh_user: centos
             agents_user: ubuntu
-    vnf:
+    vnf_topology:
         blueprint:
+            file_name: 'openstack-blueprint.yaml'
+            name: "vnftest_blueprint"
+            destination_folder: "opnfv-vnf-vyos-blueprint"
             url: https://github.com/oolorg/opnfv-vnf-vyos-blueprint.git
             branch: "master"
         requierments:
-            ram_min: 2000
-            os_image: vyos-snapshot
+            ram_min: 4000
+            os_image: vyos1.1.7
         inputs:
             keystone_username: ""
             keystone_password: ""
             keystone_tenant_name: ""
             keystone_url: ""
-            image_id: ""
+            image_id: "419b046a-4362-448f-a0a9-8dd3f9b18568"
             flavor_id: "3"
             external_network_name: ""
             ssh_user: vyos
+
 ONOS:
     general:
         onosbench_username: 'root'
