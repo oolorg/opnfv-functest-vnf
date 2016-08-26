@@ -178,10 +178,13 @@ vnf_test:
             os_image: vyos1.1.7
         inputs:
             external_network_name: ""
+<<<<<<< HEAD
             reference_vnf_flavor_id: ""
             reference_vnf_image_id: ""
             target_vnf_flavor_id: ""
             target_vnf_image_id: ""
+=======
+>>>>>>> 697c7e05cfe242715c55b5a93edbd63645208d33
 
 ONOS:
     general:
