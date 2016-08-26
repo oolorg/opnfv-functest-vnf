@@ -177,14 +177,11 @@ vnf_test:
             ram_min: 4000
             os_image: vyos1.1.7
         inputs:
-            keystone_username: ""
-            keystone_password: ""
-            keystone_tenant_name: ""
-            keystone_url: ""
-            image_id: "419b046a-4362-448f-a0a9-8dd3f9b18568"
-            flavor_id: "3"
             external_network_name: ""
-            ssh_user: vyos
+            reference_vnf_flavor_id: ""
+            reference_vnf_image_id: ""
+            target_vnf_flavor_id: ""
+            target_vnf_image_id: ""
 
 ONOS:
     general:
