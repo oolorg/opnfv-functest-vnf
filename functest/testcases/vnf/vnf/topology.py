@@ -21,11 +21,26 @@ class topology:
     def set_orchestrator(self, orchestrator):
         self.orchestrator = orchestrator
 
-    def set_flavor_id(self, flavor_id):
-        self.config['flavor_id'] = flavor_id
+    def set_target_vnf_image_id(self, image_id):
+        self.config['target_vnf_image_id'] = image_id
 
-    def set_image_id(self, image_id):
-        self.config['image_id'] = image_id
+    def set_reference_vnf_image_id(self, image_id):
+        self.config['reference_vnf_image_id'] = image_id
+
+    def set_target_vnf_flavor_id(self, flavor_id):
+        self.config['target_vnf_flavor_id'] = flavor_id
+
+    def set_reference_vnf_flavor_id(self, flavor_id):
+        self.config['reference_vnf_flavor_id'] = flavor_id
+
+    def set_region(self, region_name):
+        self.config['region'] = region_name
+
+#    def set_flavor_id(self, flavor_id):
+#        self.config['flavor_id'] = flavor_id
+
+#    def set_image_id(self, image_id):
+#        self.config['image_id'] = image_id
 
     def set_agent_user(self, agent_user):
         self.config['agent_user'] = agent_user
@@ -35,6 +50,12 @@ class topology:
 
     def set_public_domain(self, public_domain):
         self.config['public_domain'] = public_domain
+
+    def set_credentials(self, username, password, tenant_name, auth_url):
+        self.config['keystone_username'] = username
+        self.config['keystone_password'] = password
+        self.config['keystone_url'] = auth_url
+        self.config['keystone_tenant_name'] = tenant_name
 
     def deploy_vnf(self, blueprint, bp_name='vnftopology',
                    dep_name='vnftest'):

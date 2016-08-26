@@ -83,8 +83,19 @@ TPLGY_DEPLOYMENT_NAME = functest_yaml.get("vnf_test").get(
 TPLGY_INPUTS = functest_yaml.get("vnf_test").get("vnf_topology").get("inputs")
 TPLGY_REQUIERMENTS = functest_yaml.get("vnf_test").get(
     "vnf_topology").get("requierments")
-TPLGY_FLAVOR_ID = functest_yaml.get("vnf_test").get("vnf_topology").get("flavor_id")
 
+TPLGY_TGT_FLAVOR_ID =  functest_yaml.get("vnf_test").get("vnf_topology").get(
+    "inputs").get("target_vnf_flavor_id")
+TPLGY_TGT_IMAGE_ID =  functest_yaml.get("vnf_test").get("vnf_topology").get(
+    "inputs").get("target_vnf_image_id")
+
+TPLGY_REF_FLAVOR_ID =  functest_yaml.get("vnf_test").get("vnf_topology").get(
+    "inputs").get("reference_vnf_flavor_id")
+TPLGY_REF_IMAGE_ID =  functest_yaml.get("vnf_test").get("vnf_topology").get(
+    "inputs").get("reference_vnf_image_id")
+
+TPLGY_IMAGE_NAME = functest_yaml.get("vnf_test").get("vnf_topology").get(
+    "requierments").get("os_image")
 
 CFY_DEPLOYMENT_DURATION = 0
 TPLGY_DEPLOYMENT_DURATION = 0
@@ -245,14 +256,12 @@ def main():
 
     # ###############ﾂ| CLOUDIFY INITIALISATION ################
 
-    public_auth_url = keystone.service_catalog.url_for(
-        service_type='identity', endpoint_type='publicURL')
 
     cfy = orchestrator(VNF_DATA_DIR, CFY_INPUTS, logger)
 
     cfy.set_credentials(username=ks_creds['username'], password=ks_creds[
                         'password'], tenant_name=ks_creds['tenant_name'],
-                        auth_url=public_auth_url)
+                        auth_url=ks_creds['auth_url'])
 
     logger.info("Collect flavor id for cloudify manager server")
     nova = nvclient.Client("2", **nv_creds)
@@ -311,45 +320,6 @@ def main():
     cfy.download_manager_blueprint(
         CFY_MANAGER_BLUEPRINT['url'], CFY_MANAGER_BLUEPRINT['branch'])
 
-
-    tplgy = topology(TPLGY_INPUTS, cfy, logger)
-
-    logger.info("Collect flavor id for all topology vm")
-    nova = nvclient.Client("2", **nv_creds)
-
-
-    #todo make flavor
-    flavor_id == TPLGY_FLAVOR_ID
-
-    if flavor_id == '':
-        for requirement in TPLGY_REQUIERMENTS:
-            if requirement == 'ram_min':
-                flavor_id = os_utils.get_flavor_id_by_ram_range(
-                    nova, TPLGY_REQUIERMENTS['ram_min'], 8196)
-        logger.info("flavor id search set")
-
-    tplgy.set_flavor_id(flavor_id)
-
-    image_name = "vyos1.1.7"
-    image_id = os_utils.get_image_id(glance, image_name)
-    for requirement in TPLGY_REQUIERMENTS:
-        if requirement == 'os_image':
-            image_id = os_utils.get_image_id(
-                glance, TPLGY_REQUIERMENTS['os_image'])
-
-    if image_id == '':
-        step_failure(
-            "vnt_test",
-            "Error : Failed to find required OS image for cloudify manager")
-
-    tplgy.set_image_id(image_id)
-
-    ext_net = os_utils.get_external_net(neutron)
-    if not ext_net:
-        step_failure("vnt_test", "Failed to get external network")
-
-    tplgy.set_external_network_name(ext_net)
-
     # ###############ﾂ| CLOUDIFY DEPLOYMENT ################
     start_time_ts = time.time()
     end_time_ts = start_time_ts
@@ -365,6 +335,69 @@ def main():
     duration = round(end_time_ts - start_time_ts, 1)
     logger.info("Cloudify deployment duration:'%s'" % duration)
     set_result("orchestrator", duration, "")
+
+
+    # ############### VNF TOPOLOGY INITIALISATION  ################
+    tplgy = topology(TPLGY_INPUTS, cfy, logger)
+
+    logger.info("Collect flavor id for all topology vm")
+    nova = nvclient.Client("2", **nv_creds)
+
+
+    target_vnf_flavor_id = TPLGY_TGT_FLAVOR_ID
+    target_vnf_image_id  = TPLGY_TGT_IMAGE_ID
+    reference_vnf_flavor_id = TPLGY_REF_FLAVOR_ID
+    reference_vnf_image_id  = TPLGY_REF_IMAGE_ID
+
+
+    if target_vnf_flavor_id == '':
+        for requirement in TPLGY_REQUIERMENTS:
+            if requirement == 'ram_min':
+                target_vnf_flavor_id = os_utils.get_flavor_id_by_ram_range(
+                    nova, TPLGY_REQUIERMENTS['ram_min'], 8196)
+        logger.info("target_vnf_flavor_id id search set")
+
+    tplgy.set_reference_vnf_flavor_id(target_vnf_flavor_id)
+
+    if reference_vnf_flavor_id == '':
+        for requirement in TPLGY_REQUIERMENTS:
+            if requirement == 'ram_min':
+                reference_vnf_flavor_id = os_utils.get_flavor_id_by_ram_range(
+                    nova, TPLGY_REQUIERMENTS['ram_min'], 8196)
+        logger.info("reference_vnf_flavor_id id search set")
+
+    tplgy.set_target_vnf_flavor_id(reference_vnf_flavor_id)
+
+    if reference_vnf_image_id == '' or  target_vnf_image_id == '' :
+        image_name = TPLGY_IMAGE_NAME
+        image_id = os_utils.get_image_id(glance, image_name)
+        for requirement in TPLGY_REQUIERMENTS:
+            if requirement == 'os_image':
+                image_id = os_utils.get_image_id(
+                    glance, TPLGY_REQUIERMENTS['os_image'])
+
+    if image_id == '':
+        step_failure(
+            "vnt_test",
+            "Error : Failed to find required OS image for cloudify manager")
+
+    if reference_vnf_image_id == '':
+        tplgy.set_reference_vnf_image_id(image_id)
+
+    if target_vnf_image_id == '':
+        tplgy.set_target_vnf_image_id(image_id)
+
+    tplgy.set_region("RegionOne")
+
+    ext_net = os_utils.get_external_net(neutron)
+    if not ext_net:
+        step_failure("vnt_test", "Failed to get external network")
+
+    tplgy.set_external_network_name(ext_net)
+
+    tplgy.set_credentials(username=ks_creds['username'], password=ks_creds[
+                        'password'], tenant_name=ks_creds['tenant_name'],
+                        auth_url=ks_creds['auth_url'])
 
 
     # ###############? VNF TOPOLOGY DEPLOYMENT ################
@@ -388,7 +421,7 @@ def main():
 
     # ###########?CLOUDIFY UNDEPLOYMENT #############
 
-#    cfy.undeploy_manager()
+    cfy.undeploy_manager()
 
     # ############## GENERAL CLEANUP ################
     if args.noclean:
@@ -423,4 +456,5 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
