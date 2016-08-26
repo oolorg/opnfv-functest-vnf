@@ -97,6 +97,10 @@ TPLGY_REF_IMAGE_ID =  functest_yaml.get("vnf_test").get("vnf_topology").get(
 TPLGY_IMAGE_NAME = functest_yaml.get("vnf_test").get("vnf_topology").get(
     "requierments").get("os_image")
 
+TPLGY_DEPLOY_NAME = functest_yaml.get("vnf_test").get("vnf_topology").get(
+    "blueprint").get("deployment_name")
+
+
 CFY_DEPLOYMENT_DURATION = 0
 TPLGY_DEPLOYMENT_DURATION = 0
 
@@ -409,7 +413,7 @@ def main():
             '%Y-%m-%d %H:%M:%S')))
 
     # deploy
-    error = tplgy.deploy_vnf(TPLGY_BLUEPRINT)
+    error = tplgy.deploy_vnf(TPLGY_BLUEPRINT, TPLGY_DEPLOY_NAME)
     if error:
         step_failure("vnt_test", error)
 
