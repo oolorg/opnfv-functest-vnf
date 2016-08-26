@@ -173,6 +173,7 @@ vnf_test:
             destination_folder: "opnfv-vnf-vyos-blueprint"
             url: https://github.com/oolorg/opnfv-vnf-vyos-blueprint.git
             branch: "master"
+            blueprint_name: "vnftest_bp"
             deployment_name: "vnftest_vyos"
         requierments:
             ram_min: 4000
