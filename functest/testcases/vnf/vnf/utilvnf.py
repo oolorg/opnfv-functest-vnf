@@ -10,6 +10,7 @@
 ########################################################################
 import os
 from novaclient import client as novaclient
+import requests
 
 
 class utilvnf:
@@ -52,3 +53,12 @@ class utilvnf:
         address = s.addresses[network_name][0]["addr"]
 
         return address
+
+    def get_blueprint_outputs(self, cfy_manager_ip, deployment_name, first_key, second_key ):
+        url ="http://"+ cfy_manager_ip + "/deployments/" + deployment_name + "/outputs"
+
+        response = requests.get(url)
+
+        resp_data=response.json()
+        data = resp_data["outputs"][first_key][second_key]
+        return data
