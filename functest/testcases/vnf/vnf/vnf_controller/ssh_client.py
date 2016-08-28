@@ -24,7 +24,7 @@ class SSH_Client():
         self.user = user
         self.password = password
         self.timeout = timeout
-        self.WAIT = 2
+        self.WAIT = 1
         self.BUFFER = 10240
         self.connected = False
 
@@ -63,7 +63,7 @@ class SSH_Client():
         return self.connected
 
 
-    def send(self, cmd):
+    def send(self, cmd, res_flag=False):
         if self.connected == True:
             logger.debug("Commandset : '%s'", cmd)
             time.sleep(1)
@@ -72,7 +72,10 @@ class SSH_Client():
                 time.sleep(10)  
             else:
                 time.sleep(self.WAIT)
-            return self.shell.recv(self.BUFFER)
+            if res_flag:
+                return self.shell.recv(self.BUFFER)
+            else:
+                return ""
         else:
             logger.error("Cannot connected to IP '%s'." % self.ip)
             return None
@@ -87,13 +90,10 @@ if __name__ == '__main__':
     ssh_local = SSH_Client('192.168.105.136', 'vyos', 'vyos')
     ssh_local.connect()
 
-    response = ssh_local.send("vbash -c -i \"set terminal length 0\"")
+    response = ssh_local.send("set terminal length 0")
     print response
 
-    response = ssh_local.send("vbash -c -i \"show interfaces\"")
-    print response
-
-    response = ssh_local.send("show ip bgp summary | no-more")
+    response = ssh_local.send("show interfaces")
     print response
 
     ssh_local.close()

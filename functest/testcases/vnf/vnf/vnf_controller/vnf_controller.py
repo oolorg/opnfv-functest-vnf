@@ -46,12 +46,6 @@ class VNF_controller():
         for command in commands:
             res = self.command_execute(ssh, command)        
 
-    def command_execute(self, ssh, command):
-        return ssh.send(command)
-        #print command
-        #return "test"
-
-
-if __name__ == '__main__':
-    vnf_ctrl = VNF_controller()
+    def command_execute(self, ssh, command, res_flag = False):
+        return ssh.send(command, res_flag)
 

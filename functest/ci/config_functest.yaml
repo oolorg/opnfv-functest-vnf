@@ -147,6 +147,11 @@ vnf_test:
             vyos:
                 image_url: 'https://sourceforge.net/projects/ool-opnfv/files/vyos-1.1.7.img'
                 image_name: vyos1.1.7
+                user: 'vyos'
+                pass: 'vyos'
+        test_data:
+            url: 'https://github.com/oolorg/opnfv-vnf-data.git'
+            branch: 'master'
     cloudify:
         blueprint:
             url: https://github.com/boucherv-orange/cloudify-manager-blueprints.git

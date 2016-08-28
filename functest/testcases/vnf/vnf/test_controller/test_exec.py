@@ -9,6 +9,7 @@
 ########################################################################
 import os
 import yaml
+import time
 
 import functest.testcases.vnf.vnf.vnf_controller.ssh_client as ft_ssh_client
 import functest.testcases.vnf.vnf.vnf_controller.vnf_controller as ft_vnf_controller
@@ -39,6 +40,7 @@ class Test_exec():
     def run(self, vnf_list, target, test_kind, test_list):
         ssh_target = None
         target_vnf = None
+        param_target = None
 
         for vnf in vnf_list:
             test_info = self.test_cmd_map_yaml[vnf["vnf_image"]][test_kind]
@@ -64,17 +66,21 @@ class Test_exec():
 
             parameter["ipv4_origin"] = origin_ip
             parameter["ipv4_neighbor"] = neighbor_ip
+            parameter["neighbor_ip"] = neighbor_ip
 
+            if vnf["vnf_name"] == target:
+                param_target = parameter
 
-            #ssh.connect()
+            ssh.connect()
             (test_cmd_dir, test_cmd_file) = os.path.split(test_info["pre_command"])
             commands = self.vnf_ctrl.command_gen_from_template(test_cmd_dir,
                                                                test_cmd_file,
                                                                parameter)
-            #self.vnf_ctrl.commands_execute(ssh, commands)
-            #ssh.close()
+            self.vnf_ctrl.commands_execute(ssh, commands)
+            ssh.close()
 
 
+        time.sleep(20)
         if ssh_target != None:
             ssh_target.connect()
             #print "ssh_target.connect()"
@@ -84,9 +90,9 @@ class Test_exec():
         checker = ft_checker.Checker()
         for test in test_list:
             (check_rule_dir, check_fule_file) = os.path.split(test_info[test])
-            check_rules = checker.load_check_rule(check_rule_dir, check_fule_file)
+            check_rules = checker.load_check_rule(check_rule_dir, check_fule_file, param_target)
             #print check_rules
-            res = self.vnf_ctrl.command_execute(ssh_target, check_rules["command"])
+            res = self.vnf_ctrl.command_execute(ssh_target, check_rules["command"], True)
             checker.regexp_information(res, check_rules["rules"])
 
         if ssh_target != None:
@@ -94,20 +100,4 @@ class Test_exec():
             #print "ssh_target.close()"
         else:
             return None
-
-
-
-if __name__ == '__main__':
-    test_exec = Test_exec()
-
-    vnf_list = [{"vnf_name":"vnf1", "vnf_image":"vyos-1.1.7.img", "user":"vyos", "pass":"vyos", "m_plane_ip":"192.168.105.136", "d_plane_ip":"192.168.220.4"},
-                {"vnf_name":"vnf2", "vnf_image":"vyos-1.1.7.img", "user":"vyos", "pass":"vyos", "m_plane_ip":"192.168.105.135", "d_plane_ip":"192.168.220.3"}]
-    target_vnf = "vnf1"
-    test_kind = "BGP"
-    test_list = ["summary", "neighbor", "advertised-routes", "received-routes", "routes"]
-    #test_list = ["neighbor"]
-
-    test_exec.run(vnf_list, target_vnf, test_kind, test_list)
-
-
 

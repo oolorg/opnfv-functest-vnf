@@ -211,6 +211,8 @@ class orchestrator:
             if self.logger:
                 self.logger.error("Clearwater undeployment failed")
 
+    def exec_cmd(self, cmd):
+        execute_command(cmd, self.logger)
 
 def execute_command(cmd, logger, timeout=7200):
     """

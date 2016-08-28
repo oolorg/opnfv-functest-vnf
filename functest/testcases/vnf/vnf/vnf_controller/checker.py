@@ -9,6 +9,7 @@
 #######################################################################
 import json
 import re
+from jinja2 import Environment, FileSystemLoader
 import functest.utils.functest_logger as ft_logger
 
 """ logging configuration """
@@ -18,12 +19,16 @@ class Checker:
     def __init__(self):
         logger.debug("init cecker")
 
-    def load_check_rule(self, rule_file_dir, rule_file_name):
-        check_rule = rule_file_dir + "/" + rule_file_name
-        file = open(check_rule, 'r')
-        #print file.read()
-        check_rule_data = json.load(file)
-        file.close()
+    def load_check_rule(self, rule_file_dir, rule_file_name, parameter):
+        env = Environment(loader=FileSystemLoader(rule_file_dir, encoding='utf8'))
+        check_rule_template = env.get_template(rule_file_name)
+        check_rule =  check_rule_template.render(parameter)
+        check_rule_data = json.loads(check_rule)
+        #check_rule = rule_file_dir + "/" + rule_file_name
+        #file = open(check_rule, 'r')
+        ##print file.read()
+        #check_rule_data = json.load(file)
+        #file.close()
         #return check_rule_data["rules"]
         return check_rule_data
 
@@ -51,19 +56,7 @@ class Checker:
 if __name__ == '__main__':
     checker = Checker()
 
-    data ='''\
-show ip bgp summary
-BGP router identifier 192.168.220.4, local AS number 65001
-IPv4 Unicast - max multipaths: ebgp 1 ibgp 1
-RIB entries 19, using 1824 bytes of memory
-Peers 1, using 4560 bytes of memory
-
-Neighbor        V    AS MsgRcvd MsgSent   TblVer  InQ OutQ Up/Down  State/PfxRcd
-192.168.220.3   4 65002     432     433        0    0    0 07:09:57        10
-
-Total number of neighbors 1'''
-
-    print data
+    data = "Total number of neighbors 1"
 
     check_rules = checker.load_check_rule("/home/opnfv/functest/data/vnf/opnfv-vnf-data/command_template/VyOS/bgp/check_rule", "summary")
     checker.regexp_information(data, check_rules)

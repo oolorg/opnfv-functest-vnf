@@ -9,6 +9,8 @@
 # http://www.apache.org/licenses/LICENSE-2.0
 ########################################################################
 import os
+import re
+
 from novaclient import client as novaclient
 import requests
 
@@ -53,6 +55,27 @@ class utilvnf:
         address = s.addresses[network_name][0]["addr"]
 
         return address
+
+    def get_cfy_manager_address(self, cfy, testcase_dir):
+        script = "set -e; "
+        script += ("source " + testcase_dir +
+                   "venv_cloudify/bin/activate; ")
+        script += "cd " + testcase_dir + "; "
+        script += "cfy status; "
+        cmd = "/bin/bash -c '" + script + "'"
+        error = cfy.exec_cmd(cmd)
+
+        f = open("output.txt", 'r')
+        output_data = f.read()
+        f.close()
+
+        manager_address = None
+        pattern = r"[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+"
+        match = re.search(pattern , output_data)        
+        if match:
+            manager_address = match.group()
+
+        return manager_address
 
     def get_blueprint_outputs(self, cfy_manager_ip, deployment_name, first_key, second_key ):
         url ="http://"+ cfy_manager_ip + "/deployments/" + deployment_name + "/outputs"
