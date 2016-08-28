@@ -162,10 +162,10 @@ def test_vnf(cfy):
 
     util = utilvnf(logger)
 
-    username = "vnf_test"#os.environ['OS_USERNAME']
-    password = "vnf_test"#os.environ['OS_PASSWORD']
+    username = TENANT_NAME
+    password = TENANT_NAME
+    tenant_name = TENANT_NAME
     auth_url = os.environ['OS_AUTH_URL']
-    tenant_name = "vnf_test"#os.environ['OS_TENANT_NAME']
     region_name = os.environ['OS_REGION_NAME']
 
     util.set_credentials(username, password, auth_url, tenant_name, region_name)

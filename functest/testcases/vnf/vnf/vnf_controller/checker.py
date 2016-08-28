@@ -24,12 +24,6 @@ class Checker:
         check_rule_template = env.get_template(rule_file_name)
         check_rule =  check_rule_template.render(parameter)
         check_rule_data = json.loads(check_rule)
-        #check_rule = rule_file_dir + "/" + rule_file_name
-        #file = open(check_rule, 'r')
-        ##print file.read()
-        #check_rule_data = json.load(file)
-        #file.close()
-        #return check_rule_data["rules"]
         return check_rule_data
 
 
