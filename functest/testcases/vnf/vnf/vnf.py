@@ -108,10 +108,6 @@ TPLGY_DEPLOY_NAME = functest_yaml.get("vnf_test").get("vnf_topology").get(
 TPLGY_BP_NAME = functest_yaml.get("vnf_test").get("vnf_topology").get(
     "blueprint").get("blueprint_name")
 
-CFY_DEPLOYMENT_DURATION = 0
-TPLGY_DEPLOYMENT_DURATION = 0
-
-
 
 TESTCASE_START_TIME = time.time()
 RESULTS = {'orchestrator': {'duration': 0, 'result': ''},
@@ -255,11 +251,8 @@ def main():
         os.makedirs(VNF_DATA_DIR)
 
     ks_creds = os_utils.get_credentials("keystone")
-    #logger.info("keystone:"+ks_creds)
     nv_creds = os_utils.get_credentials("nova")
-    #logger.info("nova:"+nv_creds)
     nt_creds = os_utils.get_credentials("neutron")
-    #logger.info("neutron:"+nt_creds)
 
     logger.info("Prepare OpenStack plateform (create tenant and user)")
     keystone = ksclient.Client(**ks_creds)
@@ -340,18 +333,6 @@ def main():
             "init",
             "Failed to update security group quota for tenant " + TENANT_NAME)
 
-    logger.info("Update cinder quota for this tenant")
-    from cinderclient import client as cinderclient
-
-    creds_cinder = os_utils.get_credentials("cinder")
-    cinder_client = cinderclient.Client('1', creds_cinder['username'],
-                                        creds_cinder['api_key'],
-                                        creds_cinder['project_id'],
-                                        creds_cinder['auth_url'],
-                                        service_type="volume")
-    if not os_utils.update_cinder_quota(cinder_client, tenant_id, 20, 10, 150):
-        step_failure(
-            "init", "Failed to update cinder quota for tenant " + TENANT_NAME)
 
     # ###############ﾂ| CLOUDIFY INITIALISATION ################
 

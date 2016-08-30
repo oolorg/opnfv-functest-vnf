@@ -172,21 +172,14 @@ class orchestrator:
         script = "source " + self.testcase_dir + "venv_cloudify/bin/activate; "
         script += ("cd " + self.testcase_dir +
                    blueprint['destination_folder'] + "; ")
+
         script += ("cfy blueprints upload -b " +
-                   bp_name + " -p openstack-blueprint.yaml; ")
+                   bp_name + " -p " + blueprint['file_name'] + "; ")
+
         script += ("cfy deployments create -b " + bp_name +
                    " -d " + dep_name + " --inputs inputs.yaml; ")
         script += ("cfy executions start -w install -d " +
                    dep_name + " --timeout 7200; ")
-
-
-#        script += ("cd " + self.testcase_dir + "; ")
-#        script += ("cfy blueprints upload -b " +
-#                   bp_name + " -p " + blueprint['destination_folder'] +"/openstack-blueprint.yaml; ")
-#        script += ("cfy deployments create -b " + bp_name +
-#                   " -d " + dep_name + " --inputs " +blueprint['destination_folder'] + "/inputs.yaml; ")
-#        script += ("cfy executions start -w install -d " +
-#                   dep_name + " --timeout 7200; ")
 
         cmd = "/bin/bash -c '" + script + "'"
         error = execute_command(cmd, self.logger, 7200)

@@ -174,7 +174,6 @@ vnf_test:
     vnf_topology:
         blueprint:
             file_name: 'openstack-blueprint.yaml'
-            name: "vnftest_blueprint"
             destination_folder: "opnfv-vnf-vyos-blueprint"
             url: https://github.com/oolorg/opnfv-vnf-vyos-blueprint.git
             branch: "master"
