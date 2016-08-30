@@ -91,9 +91,8 @@ class Test_exec():
         for test in test_list:
             (check_rule_dir, check_fule_file) = os.path.split(test_info[test])
             check_rules = checker.load_check_rule(check_rule_dir, check_fule_file, param_target)
-            #print check_rules
             res = self.vnf_ctrl.command_execute(ssh_target, check_rules["command"], True)
-            checker.regexp_information(res, check_rules["rules"])
+            checker.regexp_information(res, check_rules)
 
         if ssh_target != None:
             ssh_target.close()

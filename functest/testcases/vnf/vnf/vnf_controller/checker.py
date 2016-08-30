@@ -9,11 +9,14 @@
 #######################################################################
 import json
 import re
+import logging
 from jinja2 import Environment, FileSystemLoader
 import functest.utils.functest_logger as ft_logger
 
 """ logging configuration """
 logger = ft_logger.Logger("vnf_test.cecker").getLogger()
+logger.setLevel(logging.INFO)
+#logger.setLevel(logging.DEBUG)
 
 class Checker:
     def __init__(self):
@@ -29,20 +32,27 @@ class Checker:
 
     def regexp_information(self, response, rules):
         status = False
-        for rule in rules:
+
+        for rule in rules["rules"]:
+            logger.info("========================================================")
+            logout = '{0:50}'.format(" " + rule["description"])
             match = re.search(rule["regexp"] , response)
             if match == None:
+                logger.info(logout + "| NG |")
                 logger.error("Nothing Match Data")
                 logger.error("rule     : " + rule["regexp"])
                 logger.error("response : " + response)
                 return False
 
             if not match.group(1) == rule["result"] :
-                logger.info("check NG")
+                logger.info(logout + "| NG |")
                 status = False
             else:
-                logger.info("check OK")
+                logger.info(logout + "| OK |")
                 status = True
+
+            logger.debug("--------------------------------------------------------")
+            logger.debug(response)
 
         return status
 

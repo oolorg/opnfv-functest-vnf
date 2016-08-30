@@ -10,12 +10,13 @@
 
 import paramiko
 import time
+import logging
 
 import functest.utils.functest_logger as ft_logger
 
 """ logging configuration """
 logger = ft_logger.Logger("vnf_test.ssh_client").getLogger()
-paramiko.util.log_to_file("/var/log/paramiko.log")
+logger.setLevel(logging.INFO)
 
 class SSH_Client():
 
@@ -35,6 +36,7 @@ class SSH_Client():
     def connect(self, retrycount=10):
         while retrycount > 0:
             try:
+                logger.info("SSH connect to %s." % self.ip)
                 self.ssh.connect(self.ip,
                                  username=self.user,
                                  password=self.password,
@@ -42,7 +44,7 @@ class SSH_Client():
                                  look_for_keys=False,
                                  allow_agent=False)
 
-                logger.debug("SSH connection established to %s." % self.ip)
+                logger.info("SSH connection established to %s." % self.ip)
 
                 self.shell = self.ssh.invoke_shell()
 
@@ -50,7 +52,7 @@ class SSH_Client():
                 #self.shell.recv(self.BUFFER)
                 break
             except:
-                logger.debug("Waiting for %s..." % self.ip)
+                logger.info("Waiting for %s..." % self.ip)
                 time.sleep(5)
                 retrycount -= 1
 
