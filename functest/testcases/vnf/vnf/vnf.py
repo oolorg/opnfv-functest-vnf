@@ -164,38 +164,47 @@ def test_vnf(cfy):
     auth_url = os.environ['OS_AUTH_URL']
     region_name = os.environ['OS_REGION_NAME']
 
+    env_info = {}
+
     util.set_credentials(username, password, auth_url, tenant_name, region_name)
+    env_info["utilvnf"] = util 
 
     cfy_manager_ip = util.get_cfy_manager_address(cfy, VNF_DATA_DIR)
     logger.debug("cfy manager address : %s" % cfy_manager_ip)
+    env_info["cfy_manager_ip"] = cfy_manager_ip
 
     target_vnf_m_plane_ip = util.get_blueprint_outputs(cfy_manager_ip,
                                                        TPLGY_DEPLOY_NAME,
                                                        "target_vnf",
                                                        "target_vnf_host_ip")
     logger.debug("target vnf management plane address : %s" % target_vnf_m_plane_ip)
+    env_info["target_vnf_m_plane_ip"] = target_vnf_m_plane_ip 
     reference_vnf_m_plane_ip = util.get_blueprint_outputs(cfy_manager_ip,
                                                        TPLGY_DEPLOY_NAME,
                                                        "reference_vnf",
                                                        "reference_vnf_host_ip")
     logger.debug("reference vnf management plane address : %s" % reference_vnf_m_plane_ip)
+    env_info["reference_vnf_m_plane_ip"] = reference_vnf_m_plane_ip
 
     target_vnf_host_name = util.get_blueprint_outputs(cfy_manager_ip,
                                                       TPLGY_DEPLOY_NAME,
                                                       "target_vnf",
                                                       "target_vnf_host_name")
     logger.debug("target vnf host name : %s" % target_vnf_host_name)
+    env_info["target_vnf_host_name"] = target_vnf_host_name
     reference_vnf_host_name = util.get_blueprint_outputs(cfy_manager_ip,
                                                       TPLGY_DEPLOY_NAME,
                                                       "reference_vnf",
                                                       "reference_vnf_host_name")
     logger.debug("reference vnf host name : %s" % reference_vnf_host_name)
+    env_info["reference_vnf_host_name"] = reference_vnf_host_name
 
     data_plane_network_name = util.get_blueprint_outputs(cfy_manager_ip,
                                                          TPLGY_DEPLOY_NAME,
                                                          "network",
                                                          "data_plane_network_name")
     logger.debug("data plene network name : %s" % data_plane_network_name)
+    env_info["data_plane_network_name"] = data_plane_network_name
 
     target_vnf_d_plane_ip = util.get_address(target_vnf_host_name, data_plane_network_name)
     logger.debug("target vnf data plane address : %s" % target_vnf_d_plane_ip)
@@ -239,8 +248,10 @@ def test_vnf(cfy):
     test_kind = test_config_yaml["test"]
     test_list = test_config_yaml[test_kind]
 
-    test_exec.run(vnf_list, target_vnf, test_kind, test_list)
-
+    if not test_exec.run(env_info, vnf_list, target_vnf, test_kind, test_list):
+        step_failure(
+            "vnt_test",
+            "Error : Faild to test execution.")
 
 
 def main():
@@ -351,7 +362,7 @@ def main():
     for requirement in CFY_MANAGER_REQUIERMENTS:
         if requirement == 'ram_min':
             flavor_id = os_utils.get_flavor_id_by_ram_range(
-                nova, CFY_MANAGER_REQUIERMENTS['ram_min'], 10000)
+                nova, CFY_MANAGER_REQUIERMENTS['ram_min'], 320000)
 
     if flavor_id == '':
         logger.error(
@@ -499,6 +510,7 @@ def main():
     set_result("vnt_test", duration, "")
 
     # ###############? VNF TEST ################
+
     test_vnf(cfy)
 
     # ###########?CLOUDIFY UNDEPLOYMENT #############

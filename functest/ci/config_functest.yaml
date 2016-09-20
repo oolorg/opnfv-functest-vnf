@@ -141,9 +141,9 @@ vnf_test:
         tenant_name: vnf_test
         tenant_description: VNF Testing
         images:
-            ubuntu:
-                image_url: 'http://cloud-images.ubuntu.com/trusty/current/trusty-server-cloudimg-amd64-disk1.img'
-                image_name: ubuntu_14.04
+            centos:
+                image_url: 'http://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud-1510.qcow2'
+                image_name: centos_7
             vyos:
                 image_url: 'https://sourceforge.net/projects/ool-opnfv/files/vyos-1.1.7.img'
                 image_name: vyos1.1.7

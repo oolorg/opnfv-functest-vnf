@@ -15,8 +15,8 @@ import functest.utils.functest_logger as ft_logger
 
 """ logging configuration """
 logger = ft_logger.Logger("vnf_test.cecker").getLogger()
-logger.setLevel(logging.INFO)
-#logger.setLevel(logging.DEBUG)
+#logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 
 class Checker:
     def __init__(self):
@@ -37,6 +37,7 @@ class Checker:
             logger.info("========================================================")
             logout = '{0:50}'.format(" " + rule["description"])
             match = re.search(rule["regexp"] , response)
+            rule["response"] = response
             if match == None:
                 logger.info(logout + "| NG |")
                 logger.error("Nothing Match Data")
@@ -46,13 +47,13 @@ class Checker:
 
             if not match.group(1) == rule["result"] :
                 logger.info(logout + "| NG |")
+                logger.error("Nothing Match Data")
+                logger.error("rule     : " + rule["regexp"])
+                logger.error("response : " + response)
                 status = False
             else:
                 logger.info(logout + "| OK |")
                 status = True
-
-            logger.debug("--------------------------------------------------------")
-            logger.debug(response)
 
         return status
 

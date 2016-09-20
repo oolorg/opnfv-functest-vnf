@@ -36,17 +36,33 @@ class VNF_controller():
 
     def __init__(self):
         logger.debug("init vnf controller")
+        self.WAIT = 2
         self.command_gen = command_generator.Command_generator()
 
     def command_gen_from_template(self, command_file_dir, command_file_name, parameter):
         template = self.command_gen.load_template(command_file_dir, command_file_name)
         return self.command_gen.command_create(template, parameter)
 
-    def commands_execute(self, ssh, commands):
+    def commands_execute(self, ssh, commands, prompt):
         for command in commands:
             logger.debug("Command : " + command)
-            self.command_execute(ssh, command)        
+            res = self.command_execute(ssh, command, prompt)
+            time.sleep(self.WAIT)
+            logger.debug("Response : " + res)
+            if not ssh.error_check(res):
+                logger.debug("Command : " + command)
+                res = self.command_execute(ssh, command, prompt)
+                logger.debug("Response : " + res)
+                if not ssh.error_check(res):
+                    return False
 
-    def command_execute(self, ssh, command, res_flag = False):
-        return ssh.send(command, res_flag)
+        return True
+
+    def command_execute(self, ssh, command, prompt):
+        res = ssh.send(command, prompt)
+        if res == None:
+            logger.info("retry send command : " + command)
+            res = ssh.send(command, prompt)
+
+        return res
 
