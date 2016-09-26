@@ -108,6 +108,7 @@ TPLGY_DEPLOY_NAME = functest_yaml.get("vnf_test").get("vnf_topology").get(
 TPLGY_BP_NAME = functest_yaml.get("vnf_test").get("vnf_topology").get(
     "blueprint").get("blueprint_name")
 
+REBOOT_WAIT = 30
 
 TESTCASE_START_TIME = time.time()
 RESULTS = {'orchestrator': {'duration': 0, 'result': ''},
@@ -154,101 +155,55 @@ def step_failure(step_name, error_msg):
 def set_result(step_name, duration=0, result=""):
     RESULTS[step_name] = {'duration': duration, 'result': result}
 
+
 def test_vnf(cfy):
+    credentials = {}
+    credentials["username"] = TENANT_NAME
+    credentials["password"] = TENANT_NAME
+    credentials["tenant_name"] = TENANT_NAME
+    credentials["auth_url"] = os.environ['OS_AUTH_URL']
+    credentials["region_name"] = os.environ['OS_REGION_NAME']
+    util_info = {}
+    util_info["credentials"] = credentials
+    util_info["cfy"] = cfy
+    util_info["vnf_data_dir"] = VNF_DATA_DIR
 
     util = utilvnf(logger)
-
-    username = TENANT_NAME
-    password = TENANT_NAME
-    tenant_name = TENANT_NAME
-    auth_url = os.environ['OS_AUTH_URL']
-    region_name = os.environ['OS_REGION_NAME']
-
-    env_info = {}
-
-    util.set_credentials(username, password, auth_url, tenant_name, region_name)
-    env_info["utilvnf"] = util 
-
-    cfy_manager_ip = util.get_cfy_manager_address(cfy, VNF_DATA_DIR)
-    logger.debug("cfy manager address : %s" % cfy_manager_ip)
-    env_info["cfy_manager_ip"] = cfy_manager_ip
-
-    target_vnf_m_plane_ip = util.get_blueprint_outputs(cfy_manager_ip,
-                                                       TPLGY_DEPLOY_NAME,
-                                                       "target_vnf",
-                                                       "target_vnf_host_ip")
-    logger.debug("target vnf management plane address : %s" % target_vnf_m_plane_ip)
-    env_info["target_vnf_m_plane_ip"] = target_vnf_m_plane_ip 
-    reference_vnf_m_plane_ip = util.get_blueprint_outputs(cfy_manager_ip,
-                                                       TPLGY_DEPLOY_NAME,
-                                                       "reference_vnf",
-                                                       "reference_vnf_host_ip")
-    logger.debug("reference vnf management plane address : %s" % reference_vnf_m_plane_ip)
-    env_info["reference_vnf_m_plane_ip"] = reference_vnf_m_plane_ip
-
-    target_vnf_host_name = util.get_blueprint_outputs(cfy_manager_ip,
-                                                      TPLGY_DEPLOY_NAME,
-                                                      "target_vnf",
-                                                      "target_vnf_host_name")
-    logger.debug("target vnf host name : %s" % target_vnf_host_name)
-    env_info["target_vnf_host_name"] = target_vnf_host_name
-    reference_vnf_host_name = util.get_blueprint_outputs(cfy_manager_ip,
-                                                      TPLGY_DEPLOY_NAME,
-                                                      "reference_vnf",
-                                                      "reference_vnf_host_name")
-    logger.debug("reference vnf host name : %s" % reference_vnf_host_name)
-    env_info["reference_vnf_host_name"] = reference_vnf_host_name
-
-    data_plane_network_name = util.get_blueprint_outputs(cfy_manager_ip,
-                                                         TPLGY_DEPLOY_NAME,
-                                                         "network",
-                                                         "data_plane_network_name")
-    logger.debug("data plene network name : %s" % data_plane_network_name)
-    env_info["data_plane_network_name"] = data_plane_network_name
-
-    target_vnf_d_plane_ip = util.get_address(target_vnf_host_name, data_plane_network_name)
-    logger.debug("target vnf data plane address : %s" % target_vnf_d_plane_ip)
-    reference_vnf_d_plane_ip = util.get_address(reference_vnf_host_name, data_plane_network_name)
-    logger.debug("reference vnf data plane address : %s" % reference_vnf_d_plane_ip)
-
+    util.set_credentials(credentials["username"], credentials["password"],
+                         credentials["auth_url"], credentials["tenant_name"], credentials["region_name"])
 
     logger.debug("Downloading the test data.")
     vnf_test_data_path = VNF_DATA_DIR + "opnfv-vnf-data/"
-    if os.path.exists(vnf_test_data_path):
-        shutil.rmtree(vnf_test_data_path)
-    Repo.clone_from(TEST_DATA['url'], vnf_test_data_path, branch=TEST_DATA['branch'])
-
-    test_exec = Test_exec()
+    if not os.path.exists(vnf_test_data_path):
+        Repo.clone_from(TEST_DATA['url'], vnf_test_data_path, branch=TEST_DATA['branch'])
 
     test_config_file = open(VNF_DATA_DIR + "opnfv-vnf-data/test_config.yaml", 'r')
     test_config_yaml = yaml.safe_load(test_config_file)
     test_config_file.close()
 
-    vnf_list = []
-
-    target_vnf_info = {
-            "vnf_name" : target_vnf_host_name,
-            "vnf_image" : TPLGY_IMAGE_NAME,
-            "user" : IMAGES['vyos']['user'],
-            "pass" : IMAGES['vyos']['pass'],
-            "m_plane_ip" : target_vnf_m_plane_ip,
-            "d_plane_ip" : target_vnf_d_plane_ip}
-    vnf_list.append(target_vnf_info)
-
-    reference_vnf_info = {
-            "vnf_name" : reference_vnf_host_name,
-            "vnf_image" : TPLGY_IMAGE_NAME,
-            "user" : IMAGES['vyos']['user'],
-            "pass" : IMAGES['vyos']['pass'],
-            "m_plane_ip" : reference_vnf_m_plane_ip,
-            "d_plane_ip" : reference_vnf_d_plane_ip}
-    vnf_list.append(reference_vnf_info)
-
-    target_vnf = target_vnf_host_name
-    test_kind = test_config_yaml["test"]
+    target_vnf_name = test_config_yaml["TargetVNF"]
+    test_kind = test_config_yaml["TestKind"]
     test_list = test_config_yaml[test_kind]
 
-    if not test_exec.run(env_info, vnf_list, target_vnf, test_kind, test_list):
+    cfy_manager_ip = util.get_cfy_manager_address(cfy, VNF_DATA_DIR)
+    logger.debug("cfy manager address : %s" % cfy_manager_ip)
+
+    vnf_list = util.get_vnf_list(cfy_manager_ip, TPLGY_DEPLOY_NAME, target_vnf_name)
+    for vnf in vnf_list:
+        vnf["vnf_image"] = TPLGY_IMAGE_NAME
+        vnf["user"] = IMAGES['vyos']['user']
+        vnf["pass"] = IMAGES['vyos']['pass']
+
+    logger.debug("request vnf's reboot.")
+    util.request_vnf_reboot(vnf_list)
+    time.sleep(REBOOT_WAIT)
+
+    terget_vnf = util.get_target_vnf(vnf_list)
+    reference_vnf_list = util.get_reference_vnf_list(vnf_list)
+
+    test_exec = Test_exec(util_info)
+
+    if not test_exec.run(terget_vnf, reference_vnf_list, test_kind, test_list):
         step_failure(
             "vnt_test",
             "Error : Faild to test execution.")
