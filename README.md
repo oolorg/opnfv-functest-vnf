@@ -4,7 +4,7 @@ This proof of concept can do testing for interoperability of BGP Protocol, In Fu
 
 
 ##1. Background
-Firstly, I explain the background of our Proroposal. ETSI Proposed to NFV Architecture, And there are many open source VNF For example VyOS , OpenvSwitch , etc .And there are VNF Appliance from Existing vendor.For example ,VyOS and Vyatta Core Core from Brocade, CSR1000V from cisco and more. But, currently there is not any standardized platform for testing VNF Appliance auto matically.
+Firstly, I explain the background of our Proroposal. ETSI Proposed to NFV Architecture, And there are many open source VNF For example VyOS , OpenvSwitch , etc .And there are VNF Appliance from Existing vendor.For example ,VyOS and Vyatta Core from Brocade, CSR1000V from cisco and more. But, currently there is not any standardized platform for testing VNF Appliance auto matically.
  
 There are problems of VNF testing. VNF Appliance is still developing, so there is no standard .Performance and stability is depend on flavors. Many test patterns are required in VNF testing more than hardware appliance. Because number of test pattern is depend on variation of resources, and variation of virtualization platform.
  
