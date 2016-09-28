@@ -1,6 +1,6 @@
 Proposal of new VNF onboarding for Danube Functest
 ==================================================
-This proof of concept can do testing for interoperability of BGP Protocol, In Future we will support other Protocol and other VNF.
+This proof of concept can do testing for interoperability of BGP Protocol, In Future we will support other Protocol(OSPF) and othre Function and other VNF.
 
 
 ##1. Background
