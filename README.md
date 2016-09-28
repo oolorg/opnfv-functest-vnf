@@ -9,16 +9,14 @@ There are problems of VNF testing. VNF Appliance is still developing, so there i
  
 **2. How to test VNF**
  1. Test System is based on functest.
- 2. VNF Testing topology was made by cloudify using blueprint.Target VNF and reference    
-      VNF are booted and Network are made.
+ 2. VNF Testing topology was made by cloudify using blueprint.Target VNF and reference VNF are booted and Network are made.
  3. New Functest module for VNF test preset test configuration to Target VNF and reference  VNF using ssh
  4. New Functest module for VNF test run test and get result
  5. Final step is Reporting
 
-
 **3.Concept**
-Test scenarios was written yaml file.The test system use template file for VNF testing command. So when user want to add new test item, user do not have to edit source code.for example OSPF.In futuer, This test suiet  will be able to change image-file(Otehr vRouter). So we can do do test of Interoperability for different vRouter.
-
+Test scenarios was written yaml file.The test system use template file for VNF testing command. So when user want to add new test item, user don't have to edit source code.for example OSPF.In futuer, This test suiet  will be able to change  image-file(Otehr vRouter). So we can do do test of Interoperability for different vRouter.
+ 
 **4.PoC**
 Okinawa Open Labs makes Proof of Concept that two VyOS VMs are booted and do test of Interoperability of BGP Protocol
 
