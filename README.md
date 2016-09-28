@@ -1,6 +1,5 @@
-#Proposal of new VNF onboarding for Danube Functest
-------------------------------------------------------
-
+Proposal of new VNF onboarding for Danube Functest
+==================================================
 
 ##1. Background
 Firstly, I explain the background of our Proposal. ETSI Proposed to NFV Architecture, And there are many open source VNF For example VyOS , OpenvSwitch , etc .And there are VNF Appliance from Existing vendor.For example ,VyOS and Vyatta Core Core from Brocade, CSR1000V from cisco and more. But, currently there is not any standardized platform for testing VNF Appliance auto matically.
@@ -21,9 +20,14 @@ Test scenarios was written yaml file.The test system use template file for VNF t
 ##4.PoC
 Okinawa Open Labs makes Proof of Concept that two VyOS VMs are booted and do test of Interoperability of BGP Protocol
 
-![Test Topology](topology.jpeg "Test Topology")
-![Test Topology openstack dashbord](network.jpeg "Test Topology openstack dashbord")
-![Test Result](testtopology.jpeg "Test Result")
+[Test Topology]
+![Test Topology](topology.jpeg "Test Topology")  
+  
+[Test Topology openstack dashbord]
+![Test Topology openstack dashbord](network.jpeg "Test Topology openstack dashbord")  
+  
+[Test Result]
+![Test Result](testtopology.jpeg "Test Result")  
 
 Test item are as follows
  1. Confirmation of peer session of BGP between target vRoutvRouterere and reference vRouter.
