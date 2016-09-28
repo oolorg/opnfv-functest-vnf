@@ -21,14 +21,14 @@ Test scenarios was written yaml file.The test system use template file for VNF t
 ##4.PoC
 Okinawa Open Labs makes Proof of Concept that two VyOS VMs are booted and do test of Interoperability of BGP Protocol
 
-![Test Topology](topology.jpeg)
-![Test Topology openstack dashbord](network.jpeg)
-![Test Result](testtopology.jpeg)
+![Test Topology](topology.jpegi "Test Topology")
+![Test Topology openstack dashbord](network.jpeg "Test Topology openstack dashbord")
+![Test Result](testtopology.jpeg "Test Result")
 
 Test item are as follows
-1. Confirmation of peer session of BGP between target vRoutvRouterere and reference vRouter.
-2. Confirmation of status of BGP for target vRoutere.
-3. Confirmation of advertised routes from target vRouter to reference vRouter.
-4. Confirmation of received routes from reference vRouter to target vRouter
-5. Confirmation of routing table of BGP for vRouter.
+ 1. Confirmation of peer session of BGP between target vRoutvRouterere and reference vRouter.
+ 2. Confirmation of status of BGP for target vRoutere.
+ 3. Confirmation of advertised routes from target vRouter to reference vRouter.
+ 4. Confirmation of received routes from reference vRouter to target vRouter
+ 5. Confirmation of routing table of BGP for vRouter.
 
