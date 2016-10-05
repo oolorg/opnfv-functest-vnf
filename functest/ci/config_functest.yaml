@@ -152,6 +152,8 @@ vnf_test:
         test_data:
             url: 'https://github.com/oolorg/opnfv-vnf-data.git'
             branch: 'master'
+        reboot_wait: 30
+        protocol_stable_wait: 30
     cloudify:
         blueprint:
             url: https://github.com/boucherv-orange/cloudify-manager-blueprints.git

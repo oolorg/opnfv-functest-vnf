@@ -32,30 +32,37 @@ class Checker:
 
     def regexp_information(self, response, rules):
         status = False
+        result_data = []
 
         for rule in rules["rules"]:
-            logger.info("========================================================")
+            section_bar = "========================================================"
+            logger.info(section_bar)
+            result_data.appned(section_bar)
             logout = '{0:50}'.format(" " + rule["description"])
+
             match = re.search(rule["regexp"] , response)
             rule["response"] = response
             if match == None:
                 logger.info(logout + "| NG |")
-                logger.error("Nothing Match Data")
-                logger.error("rule     : " + rule["regexp"])
-                logger.error("response : " + response)
+                result_data.appned(logout + "| NG |")
+                result_data.appned("Nothing Match Data")
                 return False
 
             if not match.group(1) == rule["result"] :
                 logger.info(logout + "| NG |")
-                logger.error("Nothing Match Data")
-                logger.error("rule     : " + rule["regexp"])
-                logger.error("response : " + response)
+                result_data.appned(logout + "| NG |")
+                result_data.appned("Nothing Match Data")
                 status = False
             else:
                 logger.info(logout + "| OK |")
+                result_data.appned(logout + "| OK |")
                 status = True
 
-        return status
+            result_data.appned("rule     : " + rule["regexp"])
+            result_data.appned("response : " + response)
+
+
+        return status, result_data
 
 
 if __name__ == '__main__':

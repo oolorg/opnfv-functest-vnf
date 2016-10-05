@@ -108,7 +108,7 @@ TPLGY_DEPLOY_NAME = functest_yaml.get("vnf_test").get("vnf_topology").get(
 TPLGY_BP_NAME = functest_yaml.get("vnf_test").get("vnf_topology").get(
     "blueprint").get("blueprint_name")
 
-REBOOT_WAIT = 30
+REBOOT_WAIT = functest_yaml.get("vnf_test").get("general").get("reboot_wait")
 
 TESTCASE_START_TIME = time.time()
 RESULTS = {'orchestrator': {'duration': 0, 'result': ''},
@@ -181,29 +181,35 @@ def test_vnf(cfy):
     test_config_yaml = yaml.safe_load(test_config_file)
     test_config_file.close()
 
-    target_vnf_name = test_config_yaml["TargetVNF"]
-    test_kind = test_config_yaml["TestKind"]
-    test_list = test_config_yaml[test_kind]
+    vnf_config_list = test_config_yaml["vnf"]
+    target_vnf_name = test_config_yaml["target_vnf_name"]
+    test_protocol = test_config_yaml["test_protocol_kind"]
+    test_list = test_config_yaml[test_protocol]
 
     cfy_manager_ip = util.get_cfy_manager_address(cfy, VNF_DATA_DIR)
     logger.debug("cfy manager address : %s" % cfy_manager_ip)
 
-    vnf_list = util.get_vnf_list(cfy_manager_ip, TPLGY_DEPLOY_NAME, target_vnf_name)
-    for vnf in vnf_list:
-        vnf["vnf_image"] = TPLGY_IMAGE_NAME
-        vnf["user"] = IMAGES['vyos']['user']
-        vnf["pass"] = IMAGES['vyos']['pass']
+    vnf_info_list = util.get_vnf_info_list(cfy_manager_ip, TPLGY_DEPLOY_NAME, vnf_config_list, target_vnf_name)
 
     logger.debug("request vnf's reboot.")
-    util.request_vnf_reboot(vnf_list)
+    util.request_vnf_reboot(vnf_info_list)
     time.sleep(REBOOT_WAIT)
 
-    terget_vnf = util.get_target_vnf(vnf_list)
-    reference_vnf_list = util.get_reference_vnf_list(vnf_list)
+    target_vnf = util.get_target_vnf(vnf_info_list)
+    if target_vnf == None:
+        step_failure(
+            "vnt_test",
+            "Error : target_vnf is None.")
+
+    reference_vnf_list = util.get_reference_vnf_list(vnf_info_list)
+    if len(reference_vnf_list) == 0:
+        step_failure(
+            "vnt_test",
+            "Error : reference_vnf_list is empty.")
 
     test_exec = Test_exec(util_info)
 
-    if not test_exec.run(terget_vnf, reference_vnf_list, test_kind, test_list):
+    if not test_exec.run(target_vnf, reference_vnf_list, test_protocol, test_list):
         step_failure(
             "vnt_test",
             "Error : Faild to test execution.")

@@ -10,13 +10,11 @@
 import os
 import yaml
 import time
-
-import ssh_client 
+ 
 import command_generator
-import checker
 import functest.utils.functest_logger as ft_logger
-import functest.testcases.vnf.vnf.vnf_controller.ssh_client as ft_ssh_client
-import functest.testcases.vnf.vnf.vnf_controller.checker as ft_checker
+import functest.testcases.vnf.vnf.vnf_controller.ssh_client as ssh_client
+import functest.testcases.vnf.vnf.vnf_controller.checker as checker
 
 from functest.testcases.vnf.vnf.utilvnf import utilvnf
 
@@ -34,6 +32,8 @@ f.close()
 
 VNF_DATA_DIR = functest_yaml.get("general").get(
     "directories").get("dir_vnf_test_data") + "/"
+
+REBOOT_WAIT = functest_yaml.get("vnf_test").get("general").get("reboot_wait")
 
 class VNF_controller():
 
@@ -54,24 +54,30 @@ class VNF_controller():
                                   self.credentials["tenant_name"],
                                   self.credentials["region_name"])
 
+
     def command_gen_from_template(self, command_file_dir, command_file_name, parameter):
         template = self.command_gen.load_template(command_file_dir, command_file_name)
         return self.command_gen.command_create(template, parameter)
 
 
-    def config_vnf(self, origin_vnf, neighbor_vnf, test_cmd_file_path, parameter_file_path):
+    def config_vnf(self, origin_vnf, neighbor_vnf, test_cmd_file_path, parameter_file_path, prompt_file_path):
         parameter_file = open(parameter_file_path, 'r')
         parameter = yaml.safe_load(parameter_file)
         parameter_file.close() 
 
         parameter["ipv4_origin"] = origin_vnf["data_plane_network_ip"]
 
-        ssh = ft_ssh_client.SSH_Client(origin_vnf["floating_ip"], origin_vnf["user"], origin_vnf["pass"])
+        prompt_file = open(prompt_file_path, 'r')
+        prompt = yaml.safe_load(prompt_file)
+        prompt_file.close()
+        config_mode_prompt = prompt["config_mode"]
+
+        ssh = ssh_client.SSH_Client(origin_vnf["floating_ip"], origin_vnf["user"], origin_vnf["pass"])
 
         if not ssh.connect(self.TIMEOUT, self.RETRYCOUNT):
             logger.debug("try to vm reboot.")
             self.util.reboot_v(origin_vnf["vnf_name"])
-            time.sleep(self.REBOOT_WAIT)
+            time.sleep(REBOOT_WAIT)
             if not ssh.connect(self.TIMEOUT, self.AFTER_REBOOT_RETRYCOUNT):
                 return False
 
@@ -82,7 +88,7 @@ class VNF_controller():
         commands = self.command_gen_from_template(test_cmd_dir,
                                                            test_cmd_file,
                                                            parameter)
-        if not self.commands_execute(ssh, commands, "@vyos# "):
+        if not self.command_list_execute(ssh, commands, config_mode_prompt):
             ssh.close()
             return False
 
@@ -91,38 +97,53 @@ class VNF_controller():
         return True
 
 
-    def result_check(self, target_vnf, reference_vnf, check_rule_file_path_list, parameter_file_path):
+    def result_check(self, target_vnf, reference_vnf, check_rule_file_path_list, parameter_file_path, prompt_file_path):
         parameter_file = open(parameter_file_path, 'r')
         parameter = yaml.safe_load(parameter_file)
         parameter_file.close()
 
         parameter["ipv4_origin"] = target_vnf["data_plane_network_ip"]
 
-        ssh = ft_ssh_client.SSH_Client(target_vnf["floating_ip"], target_vnf["user"], target_vnf["pass"])
+        prompt_file = open(prompt_file_path, 'r')
+        prompt = yaml.safe_load(prompt_file)
+        prompt_file.close()
+        terminal_mode_prompt = prompt["terminal_mode"]
+
+        ssh = ssh_client.SSH_Client(target_vnf["floating_ip"], target_vnf["user"], target_vnf["pass"])
 
         if not ssh.connect(self.TIMEOUT, self.RETRYCOUNT):
             return False
 
-        checker = ft_checker.Checker()
+        checker = checker.Checker()
 
         parameter["ipv4_neighbor"] = reference_vnf["data_plane_network_ip"]
         parameter["neighbor_ip"] = reference_vnf["data_plane_network_ip"]
 
+        status = True
+        res_data_list = []
         for check_rule_file_path in check_rule_file_path_list:
             (check_rule_dir, check_rule_file) = os.path.split(check_rule_file_path)
             check_rules = checker.load_check_rule(check_rule_dir, check_rule_file, parameter)
-            res = self.command_execute(ssh, check_rules["command"], "@vyos:~$ ")
+            (res, res_data) = self.command_execute(ssh, check_rules["command"], terminal_mode_prompt)
+            res_data_list.append(res_data)
             if res == None:
-                return False
+                status = False
+                break
             checker.regexp_information(res, check_rules)
             time.sleep(self.COMMAND_WAIT)
 
         ssh.close()
 
-        return True
+        self.output_chcke_result_detail_data(res_data_list) 
 
+        return status
 
-    def commands_execute(self, ssh, commands, prompt):
+    def output_chcke_result_detail_data(self, res_data_list):
+        for res_data in res_data_list:
+            for data in res_data:
+                logger.debug(data)
+
+    def command_list_execute(self, ssh, commands, prompt):
         for command in commands:
             logger.debug("Command : " + command)
             res = self.command_execute(ssh, command, prompt)

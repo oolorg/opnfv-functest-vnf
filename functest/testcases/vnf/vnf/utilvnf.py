@@ -14,7 +14,6 @@ import re
 from novaclient import client as novaclient
 import requests
 
-
 class utilvnf:
 
     def __init__(self, logger=None):
@@ -114,17 +113,23 @@ class utilvnf:
             network_list.append(networks[network_name])
         return network_list
 
-    def get_vnf_list(self, cfy_manager_ip, topology_deploy_name, target_vnf_name):
+    def get_vnf_info_list(self, cfy_manager_ip, topology_deploy_name, vnf_config_list, target_vnf_name):
         network_list = self.get_blueprint_outputs_networks(cfy_manager_ip, topology_deploy_name)
-        vnf_list = self.get_blueprint_outputs_vnfs(cfy_manager_ip, topology_deploy_name)
-        for vnf in vnf_list:
-            if vnf["vnf_name"] == target_vnf_name:
+        vnf_info_list = self.get_blueprint_outputs_vnfs(cfy_manager_ip, topology_deploy_name)
+        for vnf in vnf_info_list:
+            vnf_name = vnf["vnf_name"]
+            vnf["vnf_image"] = vnf_config_list[vnf_name]["vnf_image_name"]
+            os_type = vnf_config_list[vnf_name]["os_type"]
+            vnf["user"] = IMAGES[os_type]["user"]
+            vnf["pass"] = IMAGES[os_type]["pass"]
+
+            if vnf_name == target_vnf_name:
                 vnf["target_vnf_flag"] = True
             else:
                 vnf["target_vnf_flag"] = False
 
-            self.logger.debug("vnf name : " + vnf["vnf_name"])
-            self.logger.debug(vnf["vnf_name"] + " floating ip address : " + vnf["floating_ip"])
+            self.logger.debug("vnf name : " + vnf_name)
+            self.logger.debug(vnf_name + " floating ip address : " + vnf["floating_ip"])
 
             for network in network_list:
                 ip = self.get_address(vnf["vnf_name"], network["network_name"])
@@ -132,27 +137,27 @@ class utilvnf:
                 vnf[network_name + "_ip"] = ip
                 self.logger.debug(network_name + "_ip of " + vnf["vnf_name"] + " : " + vnf[network_name + "_ip"])
 
-        return vnf_list
+        return vnf_info_list
 
 
-    def get_target_vnf(self, vnf_list):
-        for vnf in vnf_list:
+    def get_target_vnf(self, vnf_info_list):
+        for vnf in vnf_info_list:
             if vnf["target_vnf_flag"]:
                 return vnf
 
         return None 
 
 
-    def get_reference_vnf_list(self, vnf_list):
+    def get_reference_vnf_list(self, vnf_info_list):
         reference_vnf_list = []
-        for vnf in vnf_list:
+        for vnf in vnf_info_list:
             if not vnf["target_vnf_flag"]:
                 reference_vnf_list.append(vnf)
 
         return reference_vnf_list
 
 
-    def request_vnf_reboot(self, vnf_list):
-        for vnf in vnf_list:
+    def request_vnf_reboot(self, vnf_info_list):
+        for vnf in vnf_info_list:
             self.reboot_v(vnf["vnf_name"])
 

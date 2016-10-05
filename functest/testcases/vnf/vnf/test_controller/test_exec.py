@@ -11,9 +11,9 @@ import os
 import yaml
 import time
 
-import functest.testcases.vnf.vnf.vnf_controller.vnf_controller as ft_vnf_controller
 import functest.utils.functest_logger as ft_logger
 
+from functest.testcases.vnf.vnf.vnf_controller.vnf_controller import VNF_controller
 from functest.testcases.vnf.vnf.utilvnf import utilvnf
 
 """ logging configuration """
@@ -25,15 +25,14 @@ f.close()
 
 VNF_DATA_DIR = functest_yaml.get("general").get(
     "directories").get("dir_vnf_test_data") + "/"
+PROTOCOL_STABLE_WAIT = functest_yaml.get("vnf_test").get("general").get("protocol_stable_wait")
 
 class Test_exec():
 
     def __init__(self, util_info):
         logger.debug("init test exec")
         self.credentials = util_info["credentials"]
-        self.vnf_ctrl = ft_vnf_controller.VNF_controller(util_info)
-        self.REBOOT_WAIT = 30
-        self.WAIT = 30
+        self.vnf_ctrl = VNF_controller(util_info)
 
         test_cmd_map_file = open(VNF_DATA_DIR + "opnfv-vnf-data/command_template/test_cmd_map.yaml", 'r')
         self.test_cmd_map_yaml = yaml.safe_load(test_cmd_map_file)
@@ -49,56 +48,62 @@ class Test_exec():
 
     def config_target_vnf(self, target_vnf, reference_vnf, test_kind):
         logger.debug("Configuration to target vnf")
-        test_info = self.test_cmd_map_yaml[target_vnf["vnf_image"]][test_kind]
-        test_cmd_file_path = test_info["pre_command"]
-        target_parameter_file_path = test_info["parameter_target"]
+        test_info = self.test_cmd_map_yaml[target_vnf["vnf_image"]]
+        test_cmd_file_path = test_info[test_kind]["pre_command"]
+        target_parameter_file_path = test_info[test_kind]["parameter_target"]
+        prompt_file_path = test_info["prompt"]
 
         return self.vnf_ctrl.config_vnf(target_vnf,
                                         reference_vnf,
                                         test_cmd_file_path,
-                                        target_parameter_file_path)
+                                        target_parameter_file_path,
+                                        prompt_file_path)
 
 
-    def config_reference_vnf(self, reference_vnf, target_vnf, test_kind):
+    def config_reference_vnf(self, target_vnf, reference_vnf,test_kind):
         logger.debug("Configuration to reference vnf")
-        test_info = self.test_cmd_map_yaml[reference_vnf["vnf_image"]][test_kind]
-        test_cmd_file_path = test_info["pre_command"]
-        reference_parameter_file_path = test_info["parameter_reference"]
+        test_info = self.test_cmd_map_yaml[reference_vnf["vnf_image"]]
+        test_cmd_file_path = test_info[test_kind]["pre_command"]
+        reference_parameter_file_path = test_info[test_kind]["parameter_reference"]
+        prompt_file_path = test_info["prompt"]
 
         return self.vnf_ctrl.config_vnf(reference_vnf,
                                         target_vnf,
                                         test_cmd_file_path,
-                                        reference_parameter_file_path)
+                                        reference_parameter_file_path,
+                                        prompt_file_path)
 
 
     def result_check(self, target_vnf, reference_vnf, test_kind, test_list):
-        test_info = self.test_cmd_map_yaml[target_vnf["vnf_image"]][test_kind]
-        target_parameter_file_path = test_info["parameter_target"]
+        test_info = self.test_cmd_map_yaml[target_vnf["vnf_image"]]
+        target_parameter_file_path = test_info[test_kind]["parameter_target"]
+        prompt_file_path = test_info["prompt"]
         check_rule_file_path_list = []
 
         for test in test_list:
-            check_rule_file_path_list.append(test_info[test])
+            check_rule_file_path_list.append(test_info[test_kind][test])
 
         return self.vnf_ctrl.result_check(target_vnf,
                                           reference_vnf,
                                           check_rule_file_path_list,
-                                          target_parameter_file_path)
+                                          target_parameter_file_path,
+                                          prompt_file_path)
 
 
     def run(self, target_vnf, reference_vnf_list, test_kind, test_list):
         for reference_vnf in reference_vnf_list:
-            logger.debug("Start config command.")
+            logger.debug("Start config command " + target_vnf["vnf_name"] + " and " + reference_vnf["vnf_name"])
 
             if not self.config_target_vnf(target_vnf, reference_vnf, test_kind):
                 return False
 
-            if not self.config_reference_vnf(reference_vnf, target_vnf, test_kind):
+            if not self.config_reference_vnf(target_vnf, reference_vnf,test_kind):
                 return False
 
             logger.debug("Finish config command.")
 
-            logger.debug("Start check method.")
-            #time.sleep(self.WAIT)
+            logger.debug("Start check method")
+            time.sleep(PROTOCOL_STABLE_WAIT)
 
             if not self.result_check(target_vnf, reference_vnf, test_kind, test_list):
                 return False
