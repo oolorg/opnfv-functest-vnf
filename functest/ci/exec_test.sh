@@ -36,29 +36,40 @@ if [[ "${CI_DEBUG,,}" == "true" ]];then
     debug="--debug"
 fi
 
-FUNCTEST_REPO_DIR=${repos_dir}/functest/
-FUNCTEST_CONF_DIR=/home/opnfv/functest/conf/
+FUNCTEST_REPO_DIR=${repos_dir}/functest
+FUNCTEST_CONF_DIR=/home/opnfv/functest/conf
 
+export PYTHONUNBUFFERED=1
 
 function odl_tests(){
     keystone_ip=$(openstack catalog show identity |grep publicURL| cut -f3 -d"/" | cut -f1 -d":")
     neutron_ip=$(openstack catalog show network | grep publicURL | cut -f3 -d"/" | cut -f1 -d":")
     odl_ip=${neutron_ip}
-    odl_port=8181
+    odl_port=8080
     if [ "$INSTALLER_TYPE" == "fuel" ]; then
         odl_port=8282
     elif [ "$INSTALLER_TYPE" == "apex" ]; then
         odl_ip=$SDN_CONTROLLER_IP
+        odl_port=8181
     elif [ "$INSTALLER_TYPE" == "joid" ]; then
         odl_ip=$SDN_CONTROLLER
-        odl_port=8080
-        :
     elif [ "$INSTALLER_TYPE" == "compass" ]; then
-        :
+        odl_port=8181
     else
         odl_ip=$SDN_CONTROLLER_IP
-        odl_port=8080
     fi
+}
+
+function sfc_prepare(){
+    ids=($(neutron security-group-list|grep default|awk '{print $2}'))
+    for id in ${ids[@]}; do
+        if ! neutron security-group-show $id|grep "22/tcp" &>/dev/null; then
+            neutron security-group-rule-create --protocol tcp \
+                --port-range-min 22 --port-range-max 22 --direction ingress $id
+            neutron security-group-rule-create --protocol tcp \
+                --port-range-min 22 --port-range-max 22 --direction egress $id
+        fi
+    done
 }
 
 function run_test(){
@@ -73,29 +84,19 @@ function run_test(){
             ${FUNCTEST_REPO_DIR}/testcases/OpenStack/healthcheck/healthcheck.sh
         ;;
         "vping_ssh")
-            python ${FUNCTEST_REPO_DIR}/testcases/OpenStack/vPing/vPing_ssh.py $report
+            python ${FUNCTEST_REPO_DIR}/testcases/OpenStack/vPing/vping.py -m ssh $report
         ;;
         "vping_userdata")
-            python ${FUNCTEST_REPO_DIR}/testcases/OpenStack/vPing/vPing_userdata.py $report
+            python ${FUNCTEST_REPO_DIR}/testcases/OpenStack/vPing/vping.py -m userdata $report
         ;;
         "odl")
             odl_tests
+            [[ "$report" == "-r" ]] && args=-p
             ${FUNCTEST_REPO_DIR}/testcases/Controllers/ODL/OpenDaylightTesting.py \
                 --keystoneip $keystone_ip --neutronip $neutron_ip \
                 --osusername ${OS_USERNAME} --ostenantname ${OS_TENANT_NAME} \
                 --ospassword ${OS_PASSWORD} \
-                --odlip $odl_ip --odlwebport $odl_port
-
-            # push results to the DB in case of CI
-            if [[ "$report" == "-r" &&
-                  -n "$DEPLOY_SCENARIO" && "$DEPLOY_SCENARIO" != "none" &&
-                  -n "$INSTALLER_TYPE" && "$INSTALLER_TYPE" != "none" ]] &&
-               env | grep NODE_NAME > /dev/null; then
-                odl_logs="/home/opnfv/functest/results/odl/"
-                odl_path="${FUNCTEST_REPO_DIR}/testcases/Controllers/ODL/"
-                node_name=$(env | grep NODE_NAME | cut -f2 -d'=')
-                python ${odl_path}/odlreport2db.py -x ${odl_logs}/output.xml -i ${INSTALLER_TYPE} -p ${node_name} -s ${DEPLOY_SCENARIO}
-            fi
+                --odlip $odl_ip --odlwebport $odl_port ${args}
         ;;
         "tempest_smoke_serial")
             python ${FUNCTEST_REPO_DIR}/testcases/OpenStack/tempest/run_tempest.py \
@@ -108,8 +109,8 @@ function run_test(){
         "vims")
             python ${FUNCTEST_REPO_DIR}/testcases/vnf/vIMS/vIMS.py $clean_flag $report
         ;;
-        "vnf_test")
-            python ${FUNCTEST_REPO_DIR}/testcases/vnf/vnf/vnf.py $clean_flag $report
+        "vrouter")
+            python ${FUNCTEST_REPO_DIR}/testcases/vnf/vRouter/vRouter.py $clean_flag $report
         ;;
         "rally_full")
             python ${FUNCTEST_REPO_DIR}/testcases/OpenStack/rally/run_rally-cert.py $clean_flag all $report
@@ -133,7 +134,7 @@ function run_test(){
             sleep 10 # to let the instances terminate
         ;;
         "doctor")
-            python ${FUNCTEST_REPO_DIR}/testcases/features/doctor.py
+            python ${FUNCTEST_REPO_DIR}/testcases/features/doctor.py $report
         ;;
         "ovno")
             # suite under rewritting for colorado
@@ -143,34 +144,32 @@ function run_test(){
         "security_scan")
             echo "Sourcing Credentials ${FUNCTEST_CONF_DIR}/stackrc for undercloud .."
             source ${FUNCTEST_CONF_DIR}/stackrc
-            python ${FUNCTEST_REPO_DIR}/testcases/security_scan/security_scan.py --config ${FUNCTEST_REPO_DIR}/testcases/security_scan/config.ini
+            python ${repos_dir}/securityscanning/security_scan.py --config ${repos_dir}/securityscanning/config.ini
         ;;
         "copper")
-            python ${FUNCTEST_REPO_DIR}/testcases/features/copper.py
+            python ${FUNCTEST_REPO_DIR}/testcases/features/copper.py $report
         ;;
         "moon")
-            # TODO put the link to Moon script to be run (if test runnable) here
-            ${repos_dir}/moon/tests/run_tests.sh
+            python ${repos_dir}/moon/tests/run_tests.py $report
         ;;
         "multisite")
-            python ${FUNCTEST_REPO_DIR}/testcases/features/multisite.py
+            python ${FUNCTEST_REPO_DIR}/testcases/OpenStack/tempest/gen_tempest_conf.py
             python ${FUNCTEST_REPO_DIR}/testcases/OpenStack/tempest/run_tempest.py \
-                $clean_flag -s -m feature_multisite $report
+                $clean_flag -s -m feature_multisite $report \
+                -c ${FUNCTEST_REPO_DIR}/testcases/OpenStack/tempest/tempest_multisite.conf
         ;;
         "domino")
-            python ${FUNCTEST_REPO_DIR}/testcases/features/domino.py
+            python ${FUNCTEST_REPO_DIR}/testcases/features/domino.py $report
         ;;
         "odl-sfc")
-            bash ${FUNCTEST_REPO_DIR}/testcases/features/sfc/server_presetup_CI.bash
-            ret_val=$?
-            if [ $ret_val != 0 ]; then
-                exit $ret_val
-            fi
-            source ${FUNCTEST_REPO_DIR}/testcases/features/sfc/tackerc
-            python ${FUNCTEST_REPO_DIR}/testcases/features/sfc/sfc.py
+            ODL_SFC_DIR=${FUNCTEST_REPO_DIR}/testcases/features/sfc
+            # pass FUNCTEST_REPO_DIR inside prepare_odl_sfc.bash
+            FUNCTEST_REPO_DIR=${FUNCTEST_REPO_DIR} bash ${ODL_SFC_DIR}/prepare_odl_sfc.bash || exit $?
+            source ${ODL_SFC_DIR}/tackerc
+            python ${ODL_SFC_DIR}/sfc_colorado1.py $report
         ;;
         "parser")
-            python ${FUNCTEST_REPO_DIR}/testcases/vnf/RNC/parser.py
+            python ${FUNCTEST_REPO_DIR}/testcases/vnf/vRNC/parser.py $report
         ;;
         *)
             echo "The test case '${test_name}' does not exist."
@@ -216,6 +215,10 @@ done
 echo "Sourcing Credentials ${FUNCTEST_CONF_DIR}/openstack.creds to run the test.."
 source ${FUNCTEST_CONF_DIR}/openstack.creds
 
+# ODL Boron workaround to create additional flow rules to allow port 22 TCP
+if [[ $DEPLOY_SCENARIO == *"odl_l2-sfc"* ]]; then
+    sfc_prepare
+fi
 
 # Run test
 run_test $TEST

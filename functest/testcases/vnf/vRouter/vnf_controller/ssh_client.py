@@ -18,7 +18,7 @@ import logging
 import functest.utils.functest_logger as ft_logger
 
 """ logging configuration """
-logger = ft_logger.Logger("vnf_test.ssh_client").getLogger()
+logger = ft_logger.Logger("vRouter.ssh_client").getLogger()
 logger.setLevel(logging.INFO)
 
 class SSH_Client():

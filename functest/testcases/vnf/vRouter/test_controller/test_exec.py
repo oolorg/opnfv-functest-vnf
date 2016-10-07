@@ -16,19 +16,19 @@ import time
 
 import functest.utils.functest_logger as ft_logger
 
-from functest.testcases.vnf.vnf.vnf_controller.vnf_controller import VNF_controller
-from functest.testcases.vnf.vnf.utilvnf import utilvnf
+from functest.testcases.vnf.vRouter.vnf_controller.vnf_controller import VNF_controller
+from functest.testcases.vnf.vRouter.utilvnf import utilvnf
 
 """ logging configuration """
-logger = ft_logger.Logger("vnf_test.test_exec").getLogger()
+logger = ft_logger.Logger("vRouter.test_exec").getLogger()
 
 with open(os.environ["CONFIG_FUNCTEST_YAML"]) as f:
     functest_yaml = yaml.safe_load(f)
 f.close()
 
 VNF_DATA_DIR = functest_yaml.get("general").get(
-    "directories").get("dir_vnf_test_data") + "/"
-PROTOCOL_STABLE_WAIT = functest_yaml.get("vnf_test").get("general").get("protocol_stable_wait")
+    "directories").get("dir_vRouter_data") + "/"
+PROTOCOL_STABLE_WAIT = functest_yaml.get("vRouter").get("general").get("protocol_stable_wait")
 
 class Test_exec():
 

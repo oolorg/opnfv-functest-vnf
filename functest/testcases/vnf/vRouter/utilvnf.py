@@ -26,7 +26,7 @@ with open(os.environ["CONFIG_FUNCTEST_YAML"]) as f:
     functest_yaml = yaml.safe_load(f)
 f.close()
 
-IMAGE = functest_yaml.get("vnf_test").get("general").get("images").get("vyos")
+IMAGE = functest_yaml.get("vRouter").get("general").get("images").get("vyos")
 
 
 class utilvnf:

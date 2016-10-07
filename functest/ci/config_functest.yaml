@@ -6,7 +6,7 @@ general:
         dir_rally:         testcases/OpenStack/rally/
         dir_tempest_cases: testcases/OpenStack/tempest/custom_tests/
         dir_vIMS:          testcases/vnf/vIMS/
-        dir_vnf_test:      testcases/vnf/vnf/
+        dir_vRouter:       testcases/vnf/vRouter/
         dir_onos:          testcases/Controllers/ONOS/Teston/
         dir_onos_sfc:           testcases/Controllers/ONOS/Sfc/
 
@@ -17,7 +17,7 @@ general:
         dir_repo_tempest:   /home/opnfv/repos/tempest
         dir_repo_releng:    /home/opnfv/repos/releng
         dir_repo_vims_test: /home/opnfv/repos/vims-test
-        dir_repo_vnf_test:  /home/opnfv/repos/vnf-test
+        dir_repo_vrouter:   /home/opnfv/repos/vnf
         dir_repo_bgpvpn:    /home/opnfv/repos/bgpvpn
         dir_repo_onos:      /home/opnfv/repos/onos
         dir_repo_promise:   /home/opnfv/repos/promise
@@ -32,7 +32,7 @@ general:
         dir_rally_res:      /home/opnfv/functest/results/rally/
         dir_functest_data:  /home/opnfv/functest/data
         dir_vIMS_data:      /home/opnfv/functest/data/vIMS
-        dir_vnf_test_data:  /home/opnfv/functest/data/vnf
+        dir_vRouter_data:   /home/opnfv/functest/data/vRouter
         dir_rally_inst:     /home/opnfv/.rally
 
     openstack:
@@ -41,6 +41,11 @@ general:
         image_name: Cirros-0.3.4
         image_file_name:  cirros-0.3.4-x86_64-disk.img
         image_disk_format:  qcow2
+
+        flavor_name: opnfv_flavor
+        flavor_ram: 512
+        flavor_disk: 1
+        flavor_vcpus: 1
 
         # Private network for functest. Will be created by config_functest.py
         neutron_private_net_name: functest-net
@@ -53,10 +58,11 @@ general:
 
 healthcheck:
     disk_image: /home/opnfv/functest/data/cirros-0.3.4-x86_64-disk.img
+    disk_format: qcow2
 
 vping:
     ping_timeout:   200
-    vm_flavor: m1.small # adapt to your environment
+    vm_flavor: m1.tiny # adapt to your environment
     vm_name_1: opnfv-vping-1
     vm_name_2: opnfv-vping-2
     image_name: functest-vping
@@ -77,10 +83,14 @@ tempest:
         tenant_description: Tenant for Tempest test suite
         user_name: tempest
         user_password: tempest
+    validation:
+        ssh_timeout: 130
     private_net_name: tempest-net
     private_subnet_name: tempest-subnet
     private_subnet_cidr: 192.168.150.0/24
     router_name: tempest-router
+    use_custom_images: False
+    use_custom_flavors: False
 
 rally:
     deployment_name: opnfv-rally
@@ -136,10 +146,10 @@ vIMS:
             agent_user: 'ubuntu'
             external_network_name: ''
             public_domain: clearwater.opnfv
-vnf_test:
+vRouter:
     general:
-        tenant_name: vnf_test
-        tenant_description: VNF Testing
+        tenant_name: vRouter
+        tenant_description: vRouter Testing
         images:
             centos:
                 image_url: 'http://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud-1510.qcow2'
@@ -218,36 +228,19 @@ multisite:
         installer_password: 'root'
         multisite_controller_ip: '10.1.0.50'
 promise:
-    general:
-        tenant_name: promise
-        tenant_description: promise Functionality Testing
-        user_name: promiser
-        user_pwd: test
-        image_name: promise-img
-        flavor_name: promise-flavor
-        flavor_vcpus: 1
-        flavor_ram: 512
-        flavor_disk: 0
-        network_name: promise-net
-        subnet_name: promise-subnet
-        subnet_cidr: 192.168.121.0/24
-        router_name: promise-router
-
-parser:
-    general:
-        tenant_name: parser
-        tenant_description: parser Functionality Testing
-        user_name: parser
-        user_pwd: parser
-        image_name: parser-img
-        flavor_name: parser-flavor
-        flavor_vcpus: 1
-        flavor_ram: 512
-        flavor_disk: 0
-        network_name: parser-net
-        subnet_name: parser-subnet
-        subnet_cidr: 192.168.160.0/24
-        router_name: parser-router
+    tenant_name: promise
+    tenant_description: promise Functionality Testing
+    user_name: promiser
+    user_pwd: test
+    image_name: promise-img
+    flavor_name: promise-flavor
+    flavor_vcpus: 1
+    flavor_ram: 128
+    flavor_disk: 0
+    network_name: promise-net
+    subnet_name: promise-subnet
+    subnet_cidr: 192.168.121.0/24
+    router_name: promise-router
 
 example:
     example_vm_name: example-vm

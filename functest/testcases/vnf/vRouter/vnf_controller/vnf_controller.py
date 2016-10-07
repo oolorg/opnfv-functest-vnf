@@ -16,12 +16,12 @@ import time
  
 import command_generator
 import functest.utils.functest_logger as ft_logger
-import functest.testcases.vnf.vnf.vnf_controller.ssh_client as ssh_client
-from functest.testcases.vnf.vnf.vnf_controller.checker import Checker
-from functest.testcases.vnf.vnf.utilvnf import utilvnf
+import functest.testcases.vnf.vRouter.vnf_controller.ssh_client as ssh_client
+from functest.testcases.vnf.vRouter.vnf_controller.checker import Checker
+from functest.testcases.vnf.vRouter.utilvnf import utilvnf
 
 """ logging configuration """
-logger = ft_logger.Logger("vnf_test.vnf_controller").getLogger()
+logger = ft_logger.Logger("vRouter.vnf_controller").getLogger()
 
 REPO_PATH = os.environ['repos_dir'] + '/functest/'
 if not os.path.exists(REPO_PATH):
@@ -33,9 +33,9 @@ with open(os.environ["CONFIG_FUNCTEST_YAML"]) as f:
 f.close()
 
 VNF_DATA_DIR = functest_yaml.get("general").get(
-    "directories").get("dir_vnf_test_data") + "/"
+    "directories").get("dir_vRouter_data") + "/"
 
-REBOOT_WAIT = functest_yaml.get("vnf_test").get("general").get("reboot_wait")
+REBOOT_WAIT = functest_yaml.get("vRouter").get("general").get("reboot_wait")
 
 class VNF_controller():
 

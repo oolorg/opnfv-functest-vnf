@@ -35,7 +35,7 @@ import functest.utils.openstack_utils as os_utils
 from orchestrator import orchestrator
 from topology import topology
 from utilvnf import utilvnf
-from functest.testcases.vnf.vnf.test_controller.test_exec import Test_exec
+from functest.testcases.vnf.vRouter.test_controller.test_exec import Test_exec
 
 pp = pprint.PrettyPrinter(indent=4)
 
@@ -51,7 +51,7 @@ parser.add_argument("-n", "--noclean",
 args = parser.parse_args()
 
 """ logging configuration """
-logger = ft_logger.Logger("vnf_test").getLogger()
+logger = ft_logger.Logger("vRouter").getLogger()
 
 REPO_PATH = os.environ['repos_dir'] + '/functest/'
 if not os.path.exists(REPO_PATH):
@@ -64,57 +64,57 @@ f.close()
 
 # Cloudify parameters
 VNF_DIR = (REPO_PATH +
-            functest_yaml.get("general").get("directories").get("dir_vnf_test"))
+            functest_yaml.get("general").get("directories").get("dir_vRouter"))
 VNF_DATA_DIR = functest_yaml.get("general").get(
-    "directories").get("dir_vnf_test_data") + "/"
+    "directories").get("dir_vRouter_data") + "/"
 VNF_TEST_DIR = functest_yaml.get("general").get(
-    "directories").get("dir_repo_vnf_test") + "/"
+    "directories").get("dir_repo_vrouter") + "/"
 DB_URL = functest_yaml.get("results").get("test_db_url")
 
-TENANT_NAME = functest_yaml.get("vnf_test").get("general").get("tenant_name")
-TENANT_DESCRIPTION = functest_yaml.get("vnf_test").get(
+TENANT_NAME = functest_yaml.get("vRouter").get("general").get("tenant_name")
+TENANT_DESCRIPTION = functest_yaml.get("vRouter").get(
     "general").get("tenant_description")
-IMAGES = functest_yaml.get("vnf_test").get("general").get("images")
-TEST_DATA = functest_yaml.get("vnf_test").get("general").get("test_data")
+IMAGES = functest_yaml.get("vRouter").get("general").get("images")
+TEST_DATA = functest_yaml.get("vRouter").get("general").get("test_data")
 
 CFY_MANAGER_BLUEPRINT = functest_yaml.get(
-    "vnf_test").get("cloudify").get("blueprint")
+    "vRouter").get("cloudify").get("blueprint")
 CFY_MANAGER_REQUIERMENTS = functest_yaml.get(
-    "vnf_test").get("cloudify").get("requierments")
-CFY_INPUTS = functest_yaml.get("vnf_test").get("cloudify").get("inputs")
+    "vRouter").get("cloudify").get("requierments")
+CFY_INPUTS = functest_yaml.get("vRouter").get("cloudify").get("inputs")
 
 
-TPLGY_BLUEPRINT = functest_yaml.get("vnf_test").get("vnf_topology").get("blueprint")
-TPLGY_DEPLOYMENT_NAME = functest_yaml.get("vnf_test").get(
+TPLGY_BLUEPRINT = functest_yaml.get("vRouter").get("vnf_topology").get("blueprint")
+TPLGY_DEPLOYMENT_NAME = functest_yaml.get("vRouter").get(
     "vnf_topology").get("deployment-name")
-TPLGY_INPUTS = functest_yaml.get("vnf_test").get("vnf_topology").get("inputs")
-TPLGY_REQUIERMENTS = functest_yaml.get("vnf_test").get(
+TPLGY_INPUTS = functest_yaml.get("vRouter").get("vnf_topology").get("inputs")
+TPLGY_REQUIERMENTS = functest_yaml.get("vRouter").get(
     "vnf_topology").get("requierments")
 
-TPLGY_TGT_FLAVOR_ID =  functest_yaml.get("vnf_test").get("vnf_topology").get(
+TPLGY_TGT_FLAVOR_ID =  functest_yaml.get("vRouter").get("vnf_topology").get(
     "inputs").get("target_vnf_flavor_id")
-TPLGY_TGT_IMAGE_ID =  functest_yaml.get("vnf_test").get("vnf_topology").get(
+TPLGY_TGT_IMAGE_ID =  functest_yaml.get("vRouter").get("vnf_topology").get(
     "inputs").get("target_vnf_image_id")
 
-TPLGY_REF_FLAVOR_ID =  functest_yaml.get("vnf_test").get("vnf_topology").get(
+TPLGY_REF_FLAVOR_ID =  functest_yaml.get("vRouter").get("vnf_topology").get(
     "inputs").get("reference_vnf_flavor_id")
-TPLGY_REF_IMAGE_ID =  functest_yaml.get("vnf_test").get("vnf_topology").get(
+TPLGY_REF_IMAGE_ID =  functest_yaml.get("vRouter").get("vnf_topology").get(
     "inputs").get("reference_vnf_image_id")
 
-TPLGY_IMAGE_NAME = functest_yaml.get("vnf_test").get("vnf_topology").get(
+TPLGY_IMAGE_NAME = functest_yaml.get("vRouter").get("vnf_topology").get(
     "requierments").get("os_image")
 
-TPLGY_DEPLOY_NAME = functest_yaml.get("vnf_test").get("vnf_topology").get(
+TPLGY_DEPLOY_NAME = functest_yaml.get("vRouter").get("vnf_topology").get(
     "blueprint").get("deployment_name")
 
-TPLGY_BP_NAME = functest_yaml.get("vnf_test").get("vnf_topology").get(
+TPLGY_BP_NAME = functest_yaml.get("vRouter").get("vnf_topology").get(
     "blueprint").get("blueprint_name")
 
-REBOOT_WAIT = functest_yaml.get("vnf_test").get("general").get("reboot_wait")
+REBOOT_WAIT = functest_yaml.get("vRouter").get("general").get("reboot_wait")
 
 TESTCASE_START_TIME = time.time()
 RESULTS = {'orchestrator': {'duration': 0, 'result': ''},
-           'vnf_test': {'duration': 0, 'result': ''},
+           'vRouter': {'duration': 0, 'result': ''},
            'sig_test': {'duration': 0, 'result': ''}}
 
 
@@ -145,7 +145,7 @@ def step_failure(step_name, error_msg):
     if step_name == "sig_test":
         status = "PASS"
     functest_utils.push_results_to_db("functest",
-                                      "vnf_test",
+                                      "vRouter",
                                       None,
                                       TESTCASE_START_TIME,
                                       stop_time,
@@ -158,7 +158,7 @@ def set_result(step_name, duration=0, result=""):
     RESULTS[step_name] = {'duration': duration, 'result': result}
 
 
-def test_vnf(cfy):
+def test_vRouter(cfy):
     credentials = {}
     credentials["username"] = TENANT_NAME
     credentials["password"] = TENANT_NAME
@@ -175,9 +175,9 @@ def test_vnf(cfy):
                          credentials["auth_url"], credentials["tenant_name"], credentials["region_name"])
 
     logger.debug("Downloading the test data.")
-    vnf_test_data_path = VNF_DATA_DIR + "opnfv-vnf-data/"
-    if not os.path.exists(vnf_test_data_path):
-        Repo.clone_from(TEST_DATA['url'], vnf_test_data_path, branch=TEST_DATA['branch'])
+    vRouter_data_path = VNF_DATA_DIR + "opnfv-vnf-data/"
+    if not os.path.exists(vRouter_data_path):
+        Repo.clone_from(TEST_DATA['url'], vRouter_data_path, branch=TEST_DATA['branch'])
 
     test_config_file = open(VNF_DATA_DIR + "opnfv-vnf-data/test_config.yaml", 'r')
     test_config_yaml = yaml.safe_load(test_config_file)
@@ -473,7 +473,7 @@ def main():
 
     # ###############? VNF TEST ################
 
-    test_vnf(cfy)
+    test_vRouter(cfy)
 
     # ###########?CLOUDIFY UNDEPLOYMENT #############
 

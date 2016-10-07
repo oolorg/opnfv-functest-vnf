@@ -14,7 +14,7 @@ from jinja2 import Environment, FileSystemLoader
 import functest.utils.functest_logger as ft_logger
 
 """ logging configuration """
-logger = ft_logger.Logger("vnf_test.command_gen").getLogger()
+logger = ft_logger.Logger("vRouter.command_gen").getLogger()
 
 class Command_generator:
     def __init__(self):

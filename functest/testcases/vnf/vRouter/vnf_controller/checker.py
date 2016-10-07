@@ -17,7 +17,7 @@ from jinja2 import Environment, FileSystemLoader
 import functest.utils.functest_logger as ft_logger
 
 """ logging configuration """
-logger = ft_logger.Logger("vnf_test.cecker").getLogger()
+logger = ft_logger.Logger("vRouter.cecker").getLogger()
 #logger.setLevel(logging.INFO)
 logger.setLevel(logging.DEBUG)
 

@@ -17,7 +17,7 @@ tiers:
 
                 dependencies:
                     installer: ''
-                    scenario: ''
+                    scenario: '^((?!lxd).)*$'
 
     -
         name: smoke
@@ -47,7 +47,7 @@ tiers:
                     2) Connectivity between 2 instances over a private network.
                 dependencies:
                     installer: ''
-                    scenario: ''
+                    scenario: '^((?!lxd).)*$'
 
             -
                 name: tempest_smoke_serial
@@ -71,7 +71,7 @@ tiers:
                     Rally suite in smoke mode.
                 dependencies:
                     installer: ''
-                    scenario: ''
+                    scenario: '^((?!bgpvpn).)*$'
 
     -
         name: sdn_suites
@@ -131,7 +131,7 @@ tiers:
                     Test suite from Doctor project.
                 dependencies:
                     installer: 'apex'
-                    scenario: ''
+                    scenario: '^((?!fdio).)*$'
 
             -
                 name: bgpvpn
@@ -151,7 +151,7 @@ tiers:
                     Simple security Scan
                 dependencies:
                     installer: 'apex'
-                    scenario: 'disable'
+                    scenario: '^((?!fdio).)*$'
 
             -
                 name: copper
@@ -160,8 +160,8 @@ tiers:
                 description: >-
                     Test suite for policy management based on OpenStack Congress
                 dependencies:
-                    installer: 'apex'
-                    scenario: ''
+                    installer: '(apex)|(joid)'
+                    scenario: '^((?!fdio|lxd).)*$'
             -
                 name: moon
                 criteria: 'status == "PASS"'
@@ -173,7 +173,7 @@ tiers:
                     scenario: '(odl)*(moon)'
             -
                 name: multisite
-                criteria: 'status == "PASS"'
+                criteria: 'success_rate == 100%'
                 blocking: false
                 description: >-
                     Test suite from kingbird
@@ -196,7 +196,7 @@ tiers:
                 description: >-
                     Test suite for odl-sfc to test two chains and two SFs
                 dependencies:
-                    installer: 'fuel'
+                    installer: '(apex)|(fuel)'
                     scenario: 'odl_l2-sfc'
             -
                 name: onos_sfc
@@ -207,7 +207,16 @@ tiers:
                 dependencies:
                     installer: ''
                     scenario: 'onos-sfc'
-
+            -
+                name: parser
+                criteria: 'ret == 0'
+                blocking: false
+                description: >-
+                    Test suite from Parser project.
+                dependencies:
+                    installer: 'fuel'
+                    scenario: '^((?!bgpvpn|noha).)*$'
+                    
     -
         name: openstack
         order: 4
@@ -256,20 +265,11 @@ tiers:
                     installer: ''
                     scenario: '(ocl)|(nosdn)|^(os-odl)((?!bgpvpn).)*$'
             -
-                name: vnf_test
+                name: vrouter
                 criteria: 'status == "PASS"'
                 blocking: false
                 description: >-
-                    This test case deploys VNF. using the Cloudify orchestrator.
+                    This test case is vRouter testing.
                 dependencies:
                     installer: ''
-                    scenario: '(ocl)|(nosdn)|^(os-odl)((?!bgpvpn).)*$'
-            -
-                name: parser
-                criteria: 'status == "PASS"'
-                blocking: false
-                description: >-
-                    Test suite from Parser project.
-                dependencies:
-                    installer: 'fuel'
                     scenario: ''
