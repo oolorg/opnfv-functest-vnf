@@ -17,8 +17,7 @@ import time
 import command_generator
 import functest.utils.functest_logger as ft_logger
 import functest.testcases.vnf.vnf.vnf_controller.ssh_client as ssh_client
-import functest.testcases.vnf.vnf.vnf_controller.checker as checker
-
+from functest.testcases.vnf.vnf.vnf_controller.checker import Checker
 from functest.testcases.vnf.vnf.utilvnf import utilvnf
 
 """ logging configuration """
@@ -117,7 +116,7 @@ class VNF_controller():
         if not ssh.connect(self.TIMEOUT, self.RETRYCOUNT):
             return False
 
-        checker = checker.Checker()
+        checker = Checker()
 
         parameter["ipv4_neighbor"] = reference_vnf["data_plane_network_ip"]
         parameter["neighbor_ip"] = reference_vnf["data_plane_network_ip"]
@@ -127,8 +126,8 @@ class VNF_controller():
         for check_rule_file_path in check_rule_file_path_list:
             (check_rule_dir, check_rule_file) = os.path.split(check_rule_file_path)
             check_rules = checker.load_check_rule(check_rule_dir, check_rule_file, parameter)
-            (res, res_data) = self.command_execute(ssh, check_rules["command"], terminal_mode_prompt)
-            res_data_list.append(res_data)
+            res = self.command_execute(ssh, check_rules["command"], terminal_mode_prompt)
+            res_data_list.append(res)
             if res == None:
                 status = False
                 break
@@ -143,8 +142,7 @@ class VNF_controller():
 
     def output_chcke_result_detail_data(self, res_data_list):
         for res_data in res_data_list:
-            for data in res_data:
-                logger.debug(data)
+             logger.debug(res_data)
 
     def command_list_execute(self, ssh, commands, prompt):
         for command in commands:

@@ -145,6 +145,7 @@ vnf_test:
                 image_url: 'http://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud-1510.qcow2'
                 image_name: centos_7
             vyos:
+                os_type: 'vyos'
                 image_url: 'https://sourceforge.net/projects/ool-opnfv/files/vyos-1.1.7.img'
                 image_name: vyos1.1.7
                 user: 'vyos'

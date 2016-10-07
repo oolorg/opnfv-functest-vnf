@@ -183,7 +183,6 @@ def test_vnf(cfy):
     test_config_yaml = yaml.safe_load(test_config_file)
     test_config_file.close()
 
-    vnf_config_list = test_config_yaml["vnf"]
     target_vnf_name = test_config_yaml["target_vnf_name"]
     test_protocol = test_config_yaml["test_protocol_kind"]
     test_list = test_config_yaml[test_protocol]
@@ -191,7 +190,7 @@ def test_vnf(cfy):
     cfy_manager_ip = util.get_cfy_manager_address(cfy, VNF_DATA_DIR)
     logger.debug("cfy manager address : %s" % cfy_manager_ip)
 
-    vnf_info_list = util.get_vnf_info_list(cfy_manager_ip, TPLGY_DEPLOY_NAME, vnf_config_list, target_vnf_name)
+    vnf_info_list = util.get_vnf_info_list(cfy_manager_ip, TPLGY_DEPLOY_NAME, target_vnf_name)
 
     logger.debug("request vnf's reboot.")
     util.request_vnf_reboot(vnf_info_list)

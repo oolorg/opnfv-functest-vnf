@@ -12,9 +12,22 @@
 ########################################################################
 import os
 import re
+import yaml
 
 from novaclient import client as novaclient
 import requests
+
+REPO_PATH = os.environ['repos_dir'] + '/functest/'
+if not os.path.exists(REPO_PATH):
+    logger.error("Functest repository directory not found '%s'" % REPO_PATH)
+    exit(-1)
+
+with open(os.environ["CONFIG_FUNCTEST_YAML"]) as f:
+    functest_yaml = yaml.safe_load(f)
+f.close()
+
+IMAGE = functest_yaml.get("vnf_test").get("general").get("images").get("vyos")
+
 
 class utilvnf:
 
@@ -115,15 +128,14 @@ class utilvnf:
             network_list.append(networks[network_name])
         return network_list
 
-    def get_vnf_info_list(self, cfy_manager_ip, topology_deploy_name, vnf_config_list, target_vnf_name):
+    def get_vnf_info_list(self, cfy_manager_ip, topology_deploy_name, target_vnf_name):
         network_list = self.get_blueprint_outputs_networks(cfy_manager_ip, topology_deploy_name)
         vnf_info_list = self.get_blueprint_outputs_vnfs(cfy_manager_ip, topology_deploy_name)
         for vnf in vnf_info_list:
-            vnf_name = vnf["vnf_name"]
-            vnf["vnf_image"] = vnf_config_list[vnf_name]["vnf_image_name"]
-            os_type = vnf_config_list[vnf_name]["os_type"]
-            vnf["user"] = IMAGES[os_type]["user"]
-            vnf["pass"] = IMAGES[os_type]["pass"]
+            vnf_name = vnf["vnf_name"] 
+            vnf["os_type"] = IMAGE["os_type"]
+            vnf["user"] = IMAGE["user"]
+            vnf["pass"] = IMAGE["pass"]
 
             if vnf_name == target_vnf_name:
                 vnf["target_vnf_flag"] = True
@@ -161,5 +173,6 @@ class utilvnf:
 
     def request_vnf_reboot(self, vnf_info_list):
         for vnf in vnf_info_list:
+            self.logger.debug("reboot the " + vnf["vnf_name"])
             self.reboot_v(vnf["vnf_name"])
 

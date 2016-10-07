@@ -51,7 +51,7 @@ class Test_exec():
 
     def config_target_vnf(self, target_vnf, reference_vnf, test_kind):
         logger.debug("Configuration to target vnf")
-        test_info = self.test_cmd_map_yaml[target_vnf["vnf_image"]]
+        test_info = self.test_cmd_map_yaml[target_vnf["os_type"]]
         test_cmd_file_path = test_info[test_kind]["pre_command"]
         target_parameter_file_path = test_info[test_kind]["parameter_target"]
         prompt_file_path = test_info["prompt"]
@@ -65,7 +65,7 @@ class Test_exec():
 
     def config_reference_vnf(self, target_vnf, reference_vnf,test_kind):
         logger.debug("Configuration to reference vnf")
-        test_info = self.test_cmd_map_yaml[reference_vnf["vnf_image"]]
+        test_info = self.test_cmd_map_yaml[reference_vnf["os_type"]]
         test_cmd_file_path = test_info[test_kind]["pre_command"]
         reference_parameter_file_path = test_info[test_kind]["parameter_reference"]
         prompt_file_path = test_info["prompt"]
@@ -78,7 +78,7 @@ class Test_exec():
 
 
     def result_check(self, target_vnf, reference_vnf, test_kind, test_list):
-        test_info = self.test_cmd_map_yaml[target_vnf["vnf_image"]]
+        test_info = self.test_cmd_map_yaml[target_vnf["os_type"]]
         target_parameter_file_path = test_info[test_kind]["parameter_target"]
         prompt_file_path = test_info["prompt"]
         check_rule_file_path_list = []

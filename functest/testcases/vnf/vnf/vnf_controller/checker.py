@@ -40,29 +40,29 @@ class Checker:
         for rule in rules["rules"]:
             section_bar = "========================================================"
             logger.info(section_bar)
-            result_data.appned(section_bar)
+            result_data.append(section_bar)
             logout = '{0:50}'.format(" " + rule["description"])
 
             match = re.search(rule["regexp"] , response)
             rule["response"] = response
             if match == None:
                 logger.info(logout + "| NG |")
-                result_data.appned(logout + "| NG |")
-                result_data.appned("Nothing Match Data")
+                result_data.append(logout + "| NG |")
+                result_data.append("Nothing Match Data")
                 return False
 
             if not match.group(1) == rule["result"] :
                 logger.info(logout + "| NG |")
-                result_data.appned(logout + "| NG |")
-                result_data.appned("Nothing Match Data")
+                result_data.append(logout + "| NG |")
+                result_data.append("Nothing Match Data")
                 status = False
             else:
                 logger.info(logout + "| OK |")
-                result_data.appned(logout + "| OK |")
+                result_data.append(logout + "| OK |")
                 status = True
 
-            result_data.appned("rule     : " + rule["regexp"])
-            result_data.appned("response : " + response)
+            result_data.append("rule     : " + rule["regexp"])
+            result_data.append("response : " + response)
 
 
         return status, result_data
