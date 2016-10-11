@@ -17,7 +17,6 @@ general:
         dir_repo_tempest:   /home/opnfv/repos/tempest
         dir_repo_releng:    /home/opnfv/repos/releng
         dir_repo_vims_test: /home/opnfv/repos/vims-test
-        dir_repo_vrouter:   /home/opnfv/repos/vnf
         dir_repo_bgpvpn:    /home/opnfv/repos/bgpvpn
         dir_repo_onos:      /home/opnfv/repos/onos
         dir_repo_promise:   /home/opnfv/repos/promise

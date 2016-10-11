@@ -67,8 +67,6 @@ VNF_DIR = (REPO_PATH +
             functest_yaml.get("general").get("directories").get("dir_vRouter"))
 VNF_DATA_DIR = functest_yaml.get("general").get(
     "directories").get("dir_vRouter_data") + "/"
-VNF_TEST_DIR = functest_yaml.get("general").get(
-    "directories").get("dir_repo_vrouter") + "/"
 DB_URL = functest_yaml.get("results").get("test_db_url")
 
 TENANT_NAME = functest_yaml.get("vRouter").get("general").get("tenant_name")
