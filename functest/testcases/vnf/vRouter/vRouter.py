@@ -111,9 +111,10 @@ TPLGY_BP_NAME = functest_yaml.get("vRouter").get("vnf_topology").get(
 REBOOT_WAIT = functest_yaml.get("vRouter").get("general").get("reboot_wait")
 
 TESTCASE_START_TIME = time.time()
-RESULTS = {'orchestrator': {'duration': 0, 'result': ''},
-           'vRouter': {'duration': 0, 'result': ''},
-           'sig_test': {'duration': 0, 'result': ''}}
+RESULTS = {'init': {'duration': 0, 'result': ''},
+           'making_orchestrator': {'duration': 0, 'result': ''},
+           'making_vRouter': {'duration': 0, 'result': ''},
+           'testing_vRouter': {'duration': 0, 'result': ''}}
 
 
 def download_and_add_image_on_glance(glance, image_name, image_url):
@@ -140,11 +141,8 @@ def step_failure(step_name, error_msg):
     status = "FAIL"
     # in case of failure starting and stoping time are not correct
     stop_time = time.time()
-    if step_name == "sig_test":
-        status = "PASS"
     functest_utils.push_results_to_db("functest",
-                                      "vRouter",
-                                      None,
+                                      "vrouter",
                                       TESTCASE_START_TIME,
                                       stop_time,
                                       status,
@@ -197,26 +195,49 @@ def test_vRouter(cfy):
     target_vnf = util.get_target_vnf(vnf_info_list)
     if target_vnf == None:
         step_failure(
-            "vnt_test",
+            "making_vRouter",
             "Error : target_vnf is None.")
 
     reference_vnf_list = util.get_reference_vnf_list(vnf_info_list)
     if len(reference_vnf_list) == 0:
         step_failure(
-            "vnt_test",
+            "making_vRouter",
             "Error : reference_vnf_list is empty.")
 
     test_exec = Test_exec(util_info)
 
-    if not test_exec.run(target_vnf, reference_vnf_list, test_protocol, test_list):
+    # start test
+    start_time = time.time()
+    logger.info("vRouter test Start Time:'%s'" % (
+        datetime.datetime.fromtimestamp(start_time).strftime(
+            '%Y-%m-%d %H:%M:%S')))
+
+    result = test_exec.run(target_vnf, reference_vnf_list, test_protocol, test_list)
+
+    end_time_ts = time.time()
+    duration = round(end_time_ts - start_time_ts, 1)
+    logger.info("vRouter test duration :'%s'" % duration)
+
+    if result:
+        set_result("testing_vRouter", duration, "OK")
+
+        functest_utils.push_results_to_db("functest",
+                                    "vrouter",
+                                    TESTCASE_START_TIME,
+                                    end_time_ts,
+                                    "PASS",
+                                    RESULTS)
+    else:
         step_failure(
-            "vnt_test",
+            "testing_vRouter",
             "Error : Faild to test execution.")
 
 
 def main():
 
     # ###############?GENERAL INITIALISATION ################
+
+    start_time_ts = time.time()
 
     if not os.path.exists(VNF_DATA_DIR):
         os.makedirs(VNF_DATA_DIR)
@@ -304,8 +325,12 @@ def main():
             "init",
             "Failed to update security group quota for tenant " + TENANT_NAME)
 
+    end_time_ts = time.time()
+    duration = round(end_time_ts - start_time_ts, 1)
 
-    # ###############ﾂ| CLOUDIFY INITIALISATION ################
+    set_result("init", duration, "OK")
+
+    # ###############・・ CLOUDIFY INITIALISATION ################
 
 
     cfy = orchestrator(VNF_DATA_DIR, CFY_INPUTS, logger)
@@ -331,7 +356,7 @@ def main():
         flavor_id = os_utils.get_flavor_id_by_ram_range(nova, 4000, 8196)
 
     if flavor_id == '':
-        step_failure("orchestrator",
+        step_failure("making_orchestrator",
                      "Failed to find required flavor for this deployment")
 
     cfy.set_flavor_id(flavor_id)
@@ -345,14 +370,14 @@ def main():
 
     if image_id == '':
         step_failure(
-            "orchestrator",
+            "making_orchestrator",
             "Error : Failed to find required OS image for cloudify manager")
 
     cfy.set_image_id(image_id)
 
     ext_net = os_utils.get_external_net(neutron)
     if not ext_net:
-        step_failure("orchestrator", "Failed to get external network")
+        step_failure("making_orchestrator", "Failed to get external network")
 
     cfy.set_external_network_name(ext_net)
 
@@ -371,21 +396,20 @@ def main():
     cfy.download_manager_blueprint(
         CFY_MANAGER_BLUEPRINT['url'], CFY_MANAGER_BLUEPRINT['branch'])
 
-    # ###############ﾂ| CLOUDIFY DEPLOYMENT ################
+    # ############### CLOUDIFY DEPLOYMENT ################
     start_time_ts = time.time()
-    end_time_ts = start_time_ts
     logger.info("Cloudify deployment Start Time:'%s'" % (
         datetime.datetime.fromtimestamp(start_time_ts).strftime(
             '%Y-%m-%d %H:%M:%S')))
 
     error = cfy.deploy_manager()
     if error:
-        step_failure("orchestrator", error)
+        step_failure("making_orchestrator", error)
 
     end_time_ts = time.time()
     duration = round(end_time_ts - start_time_ts, 1)
     logger.info("Cloudify deployment duration:'%s'" % duration)
-    set_result("orchestrator", duration, "")
+    set_result("making_orchestrator", duration, "OK")
 
 
     # ############### VNF TOPOLOGY INITIALISATION  ################
@@ -429,7 +453,7 @@ def main():
 
     if image_id == '':
         step_failure(
-            "vnt_test",
+            "making_vRouter",
             "Error : Failed to find required OS image for cloudify manager")
 
     if reference_vnf_image_id == '':
@@ -442,7 +466,7 @@ def main():
 
     ext_net = os_utils.get_external_net(neutron)
     if not ext_net:
-        step_failure("vnt_test", "Failed to get external network")
+        step_failure("making_vRouter", "Failed to get external network")
 
     tplgy.set_external_network_name(ext_net)
 
@@ -455,23 +479,24 @@ def main():
 
     start_time_ts = time.time()
     end_time_ts = start_time_ts
-    logger.info("vnt_test VNF deployment Start Time:'%s'" % (
+    logger.info("vRouter VNF deployment Start Time:'%s'" % (
         datetime.datetime.fromtimestamp(start_time_ts).strftime(
             '%Y-%m-%d %H:%M:%S')))
 
     # deploy
     error = tplgy.deploy_vnf(TPLGY_BLUEPRINT, TPLGY_BP_NAME, TPLGY_DEPLOY_NAME)
     if error:
-        step_failure("vnt_test", error)
+        step_failure("making_vRouter", error)
 
     end_time_ts = time.time()
     duration = round(end_time_ts - start_time_ts, 1)
-    logger.info("vnt_test VNF deployment duration:'%s'" % duration)
-    set_result("vnt_test", duration, "")
+    logger.info("vRouter VNF deployment duration:'%s'" % duration)
+    set_result("making_vRouter", duration, "OK")
 
     # ###############? VNF TEST ################
 
     test_vRouter(cfy)
+
 
     # ###########?CLOUDIFY UNDEPLOYMENT #############
 
@@ -510,5 +535,6 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 
