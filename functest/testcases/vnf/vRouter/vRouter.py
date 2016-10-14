@@ -207,9 +207,9 @@ def test_vRouter(cfy):
     test_exec = Test_exec(util_info)
 
     # start test
-    start_time = time.time()
+    start_time_ts = time.time()
     logger.info("vRouter test Start Time:'%s'" % (
-        datetime.datetime.fromtimestamp(start_time).strftime(
+        datetime.datetime.fromtimestamp(start_time_ts).strftime(
             '%Y-%m-%d %H:%M:%S')))
 
     result = test_exec.run(target_vnf, reference_vnf_list, test_protocol, test_list)
