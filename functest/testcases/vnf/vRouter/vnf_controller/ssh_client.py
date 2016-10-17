@@ -11,6 +11,8 @@
 # http://www.apache.org/licenses/LICENSE-2.0
 ########################################################################
 
+import os
+import yaml
 import paramiko
 import time
 import logging
@@ -21,14 +23,19 @@ import functest.utils.functest_logger as ft_logger
 logger = ft_logger.Logger("vRouter.ssh_client").getLogger()
 logger.setLevel(logging.INFO)
 
+with open(os.environ["CONFIG_FUNCTEST_YAML"]) as f:
+    functest_yaml = yaml.safe_load(f)
+f.close()
+
+SSH_RECEIVE_BUFFER = functest_yaml.get("vRouter").get("general").get("ssh_receive_buffer")
+RECEIVE_ROOP_WAIT = 1
+
 class SSH_Client():
 
     def __init__(self, ip, user, password):
         self.ip = ip
         self.user = user
         self.password = password
-        self.WAIT = 1
-        self.BUFFER = 10240
         self.connected = False
 
         self.ssh = paramiko.SSHClient()
@@ -49,13 +56,11 @@ class SSH_Client():
                 logger.info("SSH connection established to %s." % self.ip)
 
                 self.shell = self.ssh.invoke_shell()
-                time.sleep(self.WAIT)
 
                 while not self.shell.recv_ready():
                     time.sleep(1)
 
-                self.shell.recv(self.BUFFER)
-                time.sleep(self.WAIT)
+                self.shell.recv(SSH_RECEIVE_BUFFER)
                 break
             except:
                 logger.info("SSH timeout for %s..." % self.ip)
@@ -83,9 +88,9 @@ class SSH_Client():
 
             res_buff = ''
             while not res_buff.endswith(prompt):
-                time.sleep(self.WAIT)
+                time.sleep(RECEIVE_ROOP_WAIT)
                 try:
-                    res = self.shell.recv(self.BUFFER)
+                    res = self.shell.recv(SSH_RECEIVE_BUFFER)
                 except:
                     logger.error("ssh receive timeout : Command : '%s'", cmd)
                     break
