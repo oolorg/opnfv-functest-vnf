@@ -26,8 +26,9 @@ class Checker:
         logger.debug("init cecker")
 
     def load_check_rule(self, rule_file_dir, rule_file_name, parameter):
-        loader=FileSystemLoader(rule_file_dir, encoding='utf8')
-        env = Environment(loader)
+        loader = FileSystemLoader(rule_file_dir,
+                                  encoding='utf8')
+        env = Environment(loader=loader)
         check_rule_template = env.get_template(rule_file_name)
         check_rule = check_rule_template.render(parameter)
         check_rule_data = json.loads(check_rule)

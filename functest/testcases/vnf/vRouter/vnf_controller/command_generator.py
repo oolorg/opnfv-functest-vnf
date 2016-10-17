@@ -20,9 +20,9 @@ class Command_generator:
         logger.debug("init command generator")
 
     def load_template(self, template_dir, template):
-        loader=FileSystemLoader(template_dir,
-                                encoding='utf8')
-        env = Environment(loader)
+        loader = FileSystemLoader(template_dir,
+                                  encoding='utf8')
+        env = Environment(loader=loader)
         return env.get_template(template)
 
     def command_create(self, template, parameter):

@@ -42,7 +42,7 @@ class VNF_controller():
 
     def __init__(self, util_info):
         logger.debug("init vnf controller")
-        self.command_gen = command_generator.Command_generator()
+        self.command_gen = Command_generator()
         self.credentials = util_info["credentials"]
 
         self.util = utilvnf(logger)

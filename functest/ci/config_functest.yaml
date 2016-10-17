@@ -164,6 +164,10 @@ vRouter:
             branch: 'master'
         reboot_wait: 30
         protocol_stable_wait: 30
+        command_wait: 1
+        ssh_connect_timeout: 15
+        ssh_connect_retry_count: 20
+        ssh_receive_buffer: 10240
     cloudify:
         blueprint:
             url: https://github.com/boucherv-orange/cloudify-manager-blueprints.git

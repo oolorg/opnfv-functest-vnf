@@ -106,7 +106,7 @@ class utilvnf:
         return manager_address
 
     def get_blueprint_outputs(self, cfy_manager_ip, deployment_name):
-        url ="http://"+ cfy_manager_ip + "/deployments/" +
+        url ="http://"+ cfy_manager_ip + "/deployments/" + \
              deployment_name + "/outputs"
 
         response = requests.get(url)
