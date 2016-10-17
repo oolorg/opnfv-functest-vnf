@@ -3,15 +3,14 @@
 #######################################################################
 #
 # Copyright (c) 2016 Okinawa Open Laboratory
-# opnfv-ool-member@okinawaopenlabs.org
 #
 # All rights reserved. This program and the accompanying materials
 # are made available under the terms of the Apache License, Version 2.0
 # which accompanies this distribution, and is available at
 # http://www.apache.org/licenses/LICENSE-2.0
 ########################################################################
-import subprocess32 as subprocess
 import os
+import subprocess32 as subprocess
 import shutil
 import yaml
 from git import Repo
@@ -72,10 +71,9 @@ class orchestrator:
             if self.logger:
                 self.logger.info(
                     "Downloading the cloudify manager server blueprint")
-            download_result = download_blueprints(
-                manager_blueprint_url,
-                manager_blueprint_branch,
-                self.blueprint_dir)
+            download_result = download_blueprints(manager_blueprint_url,
+                                                  manager_blueprint_branch,
+                                                  self.blueprint_dir)
 
             if not download_result:
                 if self.logger:
@@ -92,7 +90,8 @@ class orchestrator:
             if self.logger:
                 self.logger.info("Writing the inputs file")
             with open(self.blueprint_dir + "inputs.yaml", "w") as f:
-                f.write(yaml.dump(self.config, default_style='"'))
+                f.write(yaml.dump(self.config,
+                                  default_style='"'))
             f.close()
 
             # Ensure no ssh key file already exists
@@ -118,7 +117,8 @@ class orchestrator:
             script += ("cfy bootstrap --install-plugins " +
                        "-p openstack-manager-blueprint.yaml -i inputs.yaml; ")
             cmd = "/bin/bash -c '" + script + "'"
-            error = execute_command(cmd, self.logger)
+            error = execute_command(cmd,
+                                    self.logger)
             if error:
                 return error
 
@@ -137,7 +137,8 @@ class orchestrator:
         script += "cd " + self.testcase_dir + "; "
         script += "cfy teardown -f --ignore-deployments; "
         cmd = "/bin/bash -c '" + script + "'"
-        execute_command(cmd, self.logger)
+        execute_command(cmd,
+                        self.logger)
 
         if self.logger:
             self.logger.info(
@@ -165,7 +166,8 @@ class orchestrator:
 
         with open(self.testcase_dir + blueprint['destination_folder'] +
                   "/inputs.yaml", "w") as f:
-            f.write(yaml.dump(config, default_style='"'))
+            f.write(yaml.dump(config,
+                    default_style='"'))
 
         f.close()
 
@@ -184,7 +186,9 @@ class orchestrator:
                    dep_name + " --timeout 7200; ")
 
         cmd = "/bin/bash -c '" + script + "'"
-        error = execute_command(cmd, self.logger, 7200)
+        error = execute_command(cmd,
+                                self.logger,
+                                7200)
         if error:
             return error
         if self.logger:
@@ -201,13 +205,15 @@ class orchestrator:
 
         cmd = "/bin/bash -c '" + script + "'"
         try:
-            execute_command(cmd, self.logger)
+            execute_command(cmd,
+                            self.logger)
         except:
             if self.logger:
-                self.logger.error("Clearwater undeployment failed")
+                self.logger.error("Error Clearwater undeployment failed")
 
     def exec_cmd(self, cmd):
-        execute_command(cmd, self.logger)
+        execute_command(cmd,
+                        self.logger)
 
 def execute_command(cmd, logger, timeout=7200):
     """
@@ -217,10 +223,15 @@ def execute_command(cmd, logger, timeout=7200):
         logger.debug('Executing command : {}'.format(cmd))
     timeout_exception = False
     output_file = "output.txt"
-    f = open(output_file, 'w+')
+    f = open(output_file,
+             'w+')
     try:
-        p = subprocess.call(cmd, shell=True, stdout=f,
-                            stderr=subprocess.STDOUT, timeout=timeout)
+        p = subprocess.call(cmd,
+                            shell=True,
+                            stdout=f,
+                            stderr=subprocess.STDOUT,
+                            timeout=timeout)
+
     except subprocess.TimeoutExpired:
         timeout_exception = True
         if logger:
@@ -228,7 +239,8 @@ def execute_command(cmd, logger, timeout=7200):
         pass
 
     f.close()
-    f = open(output_file, 'r')
+    f = open(output_file,
+             'r')
     result = f.read()
     if result != "" and logger:
         logger.debug(result)
@@ -237,7 +249,8 @@ def execute_command(cmd, logger, timeout=7200):
     else:
         if logger and not timeout_exception:
             logger.error("Error when executing command %s" % cmd)
-        f = open(output_file, 'r')
+        f = open(output_file,
+                 'r')
         lines = f.readlines()
         result = lines[len(lines) - 3]
         result += lines[len(lines) - 2]
@@ -249,7 +262,11 @@ def download_blueprints(blueprint_url, branch, dest_path):
     if os.path.exists(dest_path):
         shutil.rmtree(dest_path)
     try:
-        Repo.clone_from(blueprint_url, dest_path, branch=branch)
+        Repo.clone_from(blueprint_url,
+                        dest_path,
+                        branch=branch)
         return True
     except:
+        logger.error("Error blue print download err")
         return False
+
