@@ -3,7 +3,6 @@
 #######################################################################
 #
 # Copyright (c) 2016 Okinawa Open Laboratory
-# opnfv-ool-member@okinawaopenlabs.org
 #
 # All rights reserved. This program and the accompanying materials
 # are made available under the terms of the Apache License, Version 2.0
@@ -21,24 +20,11 @@ class Command_generator:
         logger.debug("init command generator")
 
     def load_template(self, template_dir, template):
-        env = Environment(loader=FileSystemLoader(template_dir, encoding='utf8'))
+        loader=FileSystemLoader(template_dir,
+                                encoding='utf8')
+        env = Environment(loader)
         return env.get_template(template)
 
     def command_create(self, template, parameter):
         commands = template.render(parameter)
         return commands.split('\n')
-
-
-if __name__ == '__main__':
-    command_gen = Command_generator()
-    template = command_gen.load_template(
-            "/home/opnfv/functest/data/vnf/opnfv-vnf-data/command_template/VyOS/bgp/",
-            "bgp")
-
-    parameter = {"haveaddr1":"x.x.x.x"}
-
-    commands = command_gen.command_create(template, parameter)
-    for command in commands:
-        print command
-
-

@@ -3,7 +3,6 @@
 #######################################################################
 #
 # Copyright (c) 2016 Okinawa Open Laboratory
-# opnfv-ool-member@okinawaopenlabs.org
 #
 # All rights reserved. This program and the accompanying materials
 # are made available under the terms of the Apache License, Version 2.0
@@ -38,12 +37,6 @@ class topology:
     def set_region(self, region_name):
         self.config['region'] = region_name
 
-#    def set_flavor_id(self, flavor_id):
-#        self.config['flavor_id'] = flavor_id
-
-#    def set_image_id(self, image_id):
-#        self.config['image_id'] = image_id
-
     def set_agent_user(self, agent_user):
         self.config['agent_user'] = agent_user
 
@@ -64,7 +57,10 @@ class topology:
         if self.orchestrator:
             self.dep_name = dep_name
             error = self.orchestrator.download_upload_and_deploy_blueprint(
-                blueprint, self.config, bp_name, dep_name)
+                                                                   blueprint,
+                                                                   self.config,
+                                                                   bp_name,
+                                                                   dep_name)
             if error:
                 return error
 
@@ -81,8 +77,8 @@ class topology:
                 self.orchestrator.undeploy_deployment(self.dep_name)
             else:
                 if self.logger:
-                    self.logger.error(" %s isn't already deploy..." %(self.dep_name) )
+                    self.logger.error(" %s isn't already deploy..."
+                                      %(self.dep_name))
         else:
             if self.logger:
                 self.logger.error("Cloudify manager is down or not provide...")
-

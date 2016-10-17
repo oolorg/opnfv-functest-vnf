@@ -3,7 +3,6 @@
 #######################################################################
 #
 # Copyright (c) 2016 Okinawa Open Laboratory
-# opnfv-ool-member@okinawaopenlabs.org
 #
 # All rights reserved. This program and the accompanying materials
 # are made available under the terms of the Apache License, Version 2.0
@@ -11,14 +10,15 @@
 # http://www.apache.org/licenses/LICENSE-2.0
 #######################################################################
 import json
-import re
 import logging
+import re
+
 from jinja2 import Environment, FileSystemLoader
+
 import functest.utils.functest_logger as ft_logger
 
 """ logging configuration """
 logger = ft_logger.Logger("vRouter.cecker").getLogger()
-#logger.setLevel(logging.INFO)
 logger.setLevel(logging.DEBUG)
 
 class Checker:
@@ -26,9 +26,10 @@ class Checker:
         logger.debug("init cecker")
 
     def load_check_rule(self, rule_file_dir, rule_file_name, parameter):
-        env = Environment(loader=FileSystemLoader(rule_file_dir, encoding='utf8'))
+        loader=FileSystemLoader(rule_file_dir, encoding='utf8')
+        env = Environment(loader)
         check_rule_template = env.get_template(rule_file_name)
-        check_rule =  check_rule_template.render(parameter)
+        check_rule = check_rule_template.render(parameter)
         check_rule_data = json.loads(check_rule)
         return check_rule_data
 
@@ -38,12 +39,13 @@ class Checker:
         result_data = []
 
         for rule in rules["rules"]:
-            section_bar = "========================================================"
-            logger.info(section_bar)
-            result_data.append(section_bar)
+            sec_bar = "========================================================"
+            logger.info(sec_bar)
+            result_data.append(sec_bar)
             logout = '{0:50}'.format(" " + rule["description"])
 
-            match = re.search(rule["regexp"] , response)
+            match = re.search(rule["regexp"],
+                              response)
             rule["response"] = response
             if match == None:
                 logger.info(logout + "| NG |")
@@ -64,18 +66,4 @@ class Checker:
             result_data.append("rule     : " + rule["regexp"])
             result_data.append("response : " + response)
 
-
         return status, result_data
-
-
-if __name__ == '__main__':
-    checker = Checker()
-
-    data = "Total number of neighbors 1"
-
-    check_rules = checker.load_check_rule("/home/opnfv/functest/data/vnf/opnfv-vnf-data/command_template/VyOS/bgp/check_rule", "summary")
-    checker.regexp_information(data, check_rules)
-
-
-
-

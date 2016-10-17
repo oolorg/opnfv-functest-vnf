@@ -3,7 +3,6 @@
 #######################################################################
 #
 # Copyright (c) 2016 Okinawa Open Laboratory
-# opnfv-ool-member@okinawaopenlabs.org
 #
 # All rights reserved. This program and the accompanying materials
 # are made available under the terms of the Apache License, Version 2.0
@@ -11,11 +10,11 @@
 # http://www.apache.org/licenses/LICENSE-2.0
 ########################################################################
 
+import logging
 import os
-import yaml
 import paramiko
 import time
-import logging
+import yaml
 
 import functest.utils.functest_logger as ft_logger
 
@@ -27,7 +26,8 @@ with open(os.environ["CONFIG_FUNCTEST_YAML"]) as f:
     functest_yaml = yaml.safe_load(f)
 f.close()
 
-SSH_RECEIVE_BUFFER = functest_yaml.get("vRouter").get("general").get("ssh_receive_buffer")
+SSH_RECEIVE_BUFFER = functest_yaml.get("vRouter").get("general").get(
+    "ssh_receive_buffer")
 RECEIVE_ROOP_WAIT = 1
 
 class SSH_Client():
@@ -67,7 +67,8 @@ class SSH_Client():
                 retrycount -= 1
 
         if retrycount == 0:
-            logger.error("Cannot establish connection to IP '%s'. Aborting" % self.ip)
+            logger.error("Cannot establish connection to IP '%s'. Aborting"
+                         % self.ip)
             self.connected = False
             return self.connected
 
@@ -108,24 +109,10 @@ class SSH_Client():
             self.ssh.close()
 
     def error_check(self, response, err_strs = ["error","warn",
-                                                "unknown command", "already exist"]):
+                                                "unknown command",
+                                                "already exist"]):
         for err in err_strs:
             if err in response:
                 return False
 
         return True
-        
-
-if __name__ == '__main__':
-    ssh_local = SSH_Client('192.168.105.56', 'vyos', 'vyos')
-    ssh_local.connect()
-    time.sleep(1)
-    response = ssh_local.send("configure", "@vyos# ")
-    print response
-
-    time.sleep(1)
-    response = ssh_local.send("set protocols static route 10.0.1.0/24 blackhole distance 1", "@vyos# ")
-    print response
-
-    ssh_local.close()
-

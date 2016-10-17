@@ -3,7 +3,6 @@
 #######################################################################
 #
 # Copyright (c) 2016 Okinawa Open Laboratory
-# opnfv-ool-member@okinawaopenlabs.org
 #
 # All rights reserved. This program and the accompanying materials
 # are made available under the terms of the Apache License, Version 2.0
@@ -12,10 +11,10 @@
 ########################################################################
 import os
 import re
+import requests
 import yaml
 
 from novaclient import client as novaclient
-import requests
 
 REPO_PATH = os.environ['repos_dir'] + '/functest/'
 if not os.path.exists(REPO_PATH):
@@ -39,7 +38,8 @@ class utilvnf:
         self.tenant_name = ""
         self.region_name = ""
 
-    def set_credentials(self, username, password, auth_url, tenant_name, region_name):
+    def set_credentials(self, username, password, auth_url,
+                        tenant_name, region_name):
         self.username = username
         self.password = password
         self.auth_url = auth_url
@@ -91,20 +91,23 @@ class utilvnf:
         cmd = "/bin/bash -c '" + script + "'"
         error = cfy.exec_cmd(cmd)
 
-        f = open("output.txt", 'r')
+        f = open("output.txt",
+                 'r')
         output_data = f.read()
         f.close()
 
         manager_address = None
         pattern = r"[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+"
-        match = re.search(pattern , output_data)        
+        match = re.search(pattern,
+                          output_data)
         if match:
             manager_address = match.group()
 
         return manager_address
 
-    def get_blueprint_outputs(self, cfy_manager_ip, deployment_name ):
-        url ="http://"+ cfy_manager_ip + "/deployments/" + deployment_name + "/outputs"
+    def get_blueprint_outputs(self, cfy_manager_ip, deployment_name):
+        url ="http://"+ cfy_manager_ip + "/deployments/" +
+             deployment_name + "/outputs"
 
         response = requests.get(url)
 
@@ -113,7 +116,8 @@ class utilvnf:
         return data
 
     def get_blueprint_outputs_vnfs(self, cfy_manager_ip, deployment_name):
-        outputs = self.get_blueprint_outputs(cfy_manager_ip, deployment_name)
+        outputs = self.get_blueprint_outputs(cfy_manager_ip,
+                                             deployment_name)
         vnfs = outputs["vnfs"]
         vnf_list = []
         for vnf_name in vnfs:
@@ -121,16 +125,20 @@ class utilvnf:
         return vnf_list
 
     def get_blueprint_outputs_networks(self, cfy_manager_ip, deployment_name):
-        outputs = self.get_blueprint_outputs(cfy_manager_ip, deployment_name)
+        outputs = self.get_blueprint_outputs(cfy_manager_ip,
+                                             deployment_name)
         networks = outputs["networks"]
         network_list = []
         for network_name in networks:
             network_list.append(networks[network_name])
         return network_list
 
-    def get_vnf_info_list(self, cfy_manager_ip, topology_deploy_name, target_vnf_name):
-        network_list = self.get_blueprint_outputs_networks(cfy_manager_ip, topology_deploy_name)
-        vnf_info_list = self.get_blueprint_outputs_vnfs(cfy_manager_ip, topology_deploy_name)
+    def get_vnf_info_list(self, cfy_manager_ip, topology_deploy_name,
+                          target_vnf_name):
+        network_list = self.get_blueprint_outputs_networks(cfy_manager_ip,
+                                                           topology_deploy_name)
+        vnf_info_list = self.get_blueprint_outputs_vnfs(cfy_manager_ip,
+                                                        topology_deploy_name)
         for vnf in vnf_info_list:
             vnf_name = vnf["vnf_name"] 
             vnf["os_type"] = IMAGE["os_type"]
@@ -143,24 +151,25 @@ class utilvnf:
                 vnf["target_vnf_flag"] = False
 
             self.logger.debug("vnf name : " + vnf_name)
-            self.logger.debug(vnf_name + " floating ip address : " + vnf["floating_ip"])
+            self.logger.debug(vnf_name + " floating ip address : " +
+                              vnf["floating_ip"])
 
             for network in network_list:
-                ip = self.get_address(vnf["vnf_name"], network["network_name"])
+                ip = self.get_address(vnf["vnf_name"],
+                                      network["network_name"])
                 network_name = network["network_name"]
                 vnf[network_name + "_ip"] = ip
-                self.logger.debug(network_name + "_ip of " + vnf["vnf_name"] + " : " + vnf[network_name + "_ip"])
+                self.logger.debug(network_name + "_ip of " + vnf["vnf_name"] +
+                                  " : " + vnf[network_name + "_ip"])
 
         return vnf_info_list
-
 
     def get_target_vnf(self, vnf_info_list):
         for vnf in vnf_info_list:
             if vnf["target_vnf_flag"]:
                 return vnf
 
-        return None 
-
+        return None
 
     def get_reference_vnf_list(self, vnf_info_list):
         reference_vnf_list = []
@@ -170,9 +179,7 @@ class utilvnf:
 
         return reference_vnf_list
 
-
     def request_vnf_reboot(self, vnf_info_list):
         for vnf in vnf_info_list:
             self.logger.debug("reboot the " + vnf["vnf_name"])
             self.reboot_v(vnf["vnf_name"])
-
