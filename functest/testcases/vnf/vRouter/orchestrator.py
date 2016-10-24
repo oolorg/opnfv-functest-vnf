@@ -71,7 +71,8 @@ class orchestrator:
             if self.logger:
                 self.logger.info(
                     "Downloading the cloudify manager server blueprint")
-            download_result = download_blueprints(manager_blueprint_url,
+            download_result = download_blueprints(self.logger,
+                                                  manager_blueprint_url,
                                                   manager_blueprint_branch,
                                                   self.blueprint_dir)
 
@@ -149,7 +150,8 @@ class orchestrator:
         if self.logger:
             self.logger.info("Downloading the {0} blueprint".format(
                 blueprint['file_name']))
-        download_result = download_blueprints(blueprint['url'],
+        download_result = download_blueprints(self.logger,
+                                              blueprint['url'],
                                               blueprint['branch'],
                                               self.testcase_dir +
                                               blueprint['destination_folder'])
@@ -215,6 +217,7 @@ class orchestrator:
         execute_command(cmd,
                         self.logger)
 
+
 def execute_command(cmd, logger, timeout=7200):
     """
     Execute Linux command
@@ -258,7 +261,7 @@ def execute_command(cmd, logger, timeout=7200):
         return result
 
 
-def download_blueprints(blueprint_url, branch, dest_path):
+def download_blueprints(logger, blueprint_url, branch, dest_path):
     if os.path.exists(dest_path):
         shutil.rmtree(dest_path)
     try:
@@ -269,4 +272,3 @@ def download_blueprints(blueprint_url, branch, dest_path):
     except:
         logger.error("Error blue print download err")
         return False
-

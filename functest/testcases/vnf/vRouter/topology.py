@@ -78,7 +78,7 @@ class topology:
             else:
                 if self.logger:
                     self.logger.error(" %s isn't already deploy..."
-                                      %(self.dep_name))
+                                      % (self.dep_name))
         else:
             if self.logger:
                 self.logger.error("Cloudify manager is down or not provide...")

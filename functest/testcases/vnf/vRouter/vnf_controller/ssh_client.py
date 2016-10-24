@@ -1,5 +1,5 @@
-##!/usr/bin/python
-## coding: utf8
+#!/usr/bin/python
+# coding: utf8
 #######################################################################
 #
 # Copyright (c) 2016 Okinawa Open Laboratory
@@ -30,6 +30,7 @@ SSH_RECEIVE_BUFFER = functest_yaml.get("vRouter").get("general").get(
     "ssh_receive_buffer")
 RECEIVE_ROOP_WAIT = 1
 
+
 class SSH_Client():
 
     def __init__(self, ip, user, password):
@@ -40,7 +41,6 @@ class SSH_Client():
 
         self.ssh = paramiko.SSHClient()
         self.ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-
 
     def connect(self, time_out=10, retrycount=10):
         while retrycount > 0:
@@ -75,9 +75,8 @@ class SSH_Client():
         self.connected = True
         return self.connected
 
-
     def send(self, cmd, prompt, timeout=10):
-        if self.connected == True:
+        if self.connected is True:
             self.shell.settimeout(timeout)
             logger.debug("Commandset : '%s'", cmd)
 
@@ -105,12 +104,13 @@ class SSH_Client():
             return None
 
     def close(self):
-        if self.connected == True:
+        if self.connected is True:
             self.ssh.close()
 
-    def error_check(self, response, err_strs = ["error","warn",
-                                                "unknown command",
-                                                "already exist"]):
+    def error_check(self, response, err_strs=["error",
+                                              "warn",
+                                              "unknown command",
+                                              "already exist"]):
         for err in err_strs:
             if err in response:
                 return False

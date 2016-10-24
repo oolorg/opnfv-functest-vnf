@@ -12,12 +12,8 @@
 
 import argparse
 import datetime
-import json
 import os
 import pprint
-import requests
-import subprocess
-import shutil
 import time
 import yaml
 
@@ -71,7 +67,7 @@ f.close()
 
 # Cloudify parameters
 VNF_DIR = (REPO_PATH +
-            functest_yaml.get("general").get("directories").get("dir_vRouter"))
+           functest_yaml.get("general").get("directories").get("dir_vRouter"))
 VNF_DATA_DIR = functest_yaml.get("general").get(
     "directories").get("dir_vRouter_data") + "/"
 DB_URL = functest_yaml.get("results").get("test_db_url")
@@ -98,14 +94,14 @@ TPLGY_INPUTS = functest_yaml.get("vRouter").get(
 TPLGY_REQUIERMENTS = functest_yaml.get("vRouter").get(
     "vnf_topology").get("requierments")
 
-TPLGY_TGT_FLAVOR_ID =  functest_yaml.get("vRouter").get(
+TPLGY_TGT_FLAVOR_ID = functest_yaml.get("vRouter").get(
     "vnf_topology").get("inputs").get("target_vnf_flavor_id")
-TPLGY_TGT_IMAGE_ID =  functest_yaml.get("vRouter").get(
+TPLGY_TGT_IMAGE_ID = functest_yaml.get("vRouter").get(
     "vnf_topology").get("inputs").get("target_vnf_image_id")
 
-TPLGY_REF_FLAVOR_ID =  functest_yaml.get("vRouter").get(
+TPLGY_REF_FLAVOR_ID = functest_yaml.get("vRouter").get(
     "vnf_topology").get("inputs").get("reference_vnf_flavor_id")
-TPLGY_REF_IMAGE_ID =  functest_yaml.get("vRouter").get(
+TPLGY_REF_IMAGE_ID = functest_yaml.get("vRouter").get(
     "vnf_topology").get("inputs").get("reference_vnf_image_id")
 
 TPLGY_IMAGE_NAME = functest_yaml.get("vRouter").get(
@@ -128,13 +124,13 @@ RESULTS = {
     },
     'making_orchestrator': {
         'duration': 0,
-         'result': ''
+        'result': ''
     },
     'making_vRouter': {
         'duration': 0,
         'result': ''
     },
-    'testing_vRouter':{
+    'testing_vRouter': {
         'duration': 0,
         'result': ''
     }
@@ -162,6 +158,7 @@ def download_and_add_image_on_glance(glance, image_name, image_url):
 
     return image
 
+
 def set_result(step_name, duration=0, result=""):
     RESULTS[step_name] = {
         'duration': duration,
@@ -184,8 +181,6 @@ def step_failure(step_name, error_msg):
                                       status,
                                       RESULTS)
     exit(-1)
-
-
 
 
 def test_vRouter(cfy):
@@ -216,7 +211,7 @@ def test_vRouter(cfy):
                         branch=TEST_DATA['branch'])
 
     test_config_file = open(VNF_DATA_DIR + "opnfv-vnf-data/test_config.yaml",
-                             'r')
+                            'r')
     test_config_yaml = yaml.safe_load(test_config_file)
     test_config_file.close()
 
@@ -239,7 +234,7 @@ def test_vRouter(cfy):
     time.sleep(REBOOT_WAIT)
 
     target_vnf = util.get_target_vnf(vnf_info_list)
-    if target_vnf == None:
+    if target_vnf is None:
         step_failure(
             "making_vRouter",
             "Error : target_vnf is None.")
@@ -274,11 +269,11 @@ def test_vRouter(cfy):
                    "OK")
 
         functest_utils.push_results_to_db("functest",
-                                    "vrouter",
-                                    TESTCASE_START_TIME,
-                                    end_time_ts,
-                                    "PASS",
-                                    RESULTS)
+                                          "vrouter",
+                                          TESTCASE_START_TIME,
+                                          end_time_ts,
+                                          "PASS",
+                                          RESULTS)
     else:
         step_failure(
             "testing_vRouter",
@@ -360,8 +355,9 @@ def main():
     })
 
     logger.info("Upload some OS images if it doesn't exist")
-    glance_endpoint = keystone.service_catalog.url_for(service_type='image',
-                                                       endpoint_type='publicURL')
+    glance_endpoint = keystone.service_catalog.url_for(
+                                                   service_type='image',
+                                                   endpoint_type='publicURL')
 
     glance = glclient.Client(1,
                              glance_endpoint,
@@ -411,8 +407,7 @@ def main():
                duration,
                "OK")
 
-    # ###############・・ CLOUDIFY INITIALISATION ################
-
+    # ############### CLOUDIFY INITIALISATION ################
 
     cfy = orchestrator(VNF_DATA_DIR,
                        CFY_INPUTS,
@@ -481,7 +476,6 @@ def main():
     if ns:
         cfy.set_nameservers(ns)
 
-
     logger.info("Prepare virtualenv for cloudify-cli")
     cmd = "chmod +x " + VNF_DIR + "create_venv.sh"
     functest_utils.execute_command(cmd,
@@ -515,7 +509,6 @@ def main():
                duration,
                "OK")
 
-
     # ############### VNF TOPOLOGY INITIALISATION  ################
     tplgy = topology(TPLGY_INPUTS,
                      cfy,
@@ -523,14 +516,12 @@ def main():
 
     logger.info("Collect flavor id for all topology vm")
     nova = nvclient.Client("2",
-           **nv_creds)
-
+                           **nv_creds)
 
     target_vnf_flavor_id = TPLGY_TGT_FLAVOR_ID
-    target_vnf_image_id  = TPLGY_TGT_IMAGE_ID
+    target_vnf_image_id = TPLGY_TGT_IMAGE_ID
     reference_vnf_flavor_id = TPLGY_REF_FLAVOR_ID
-    reference_vnf_image_id  = TPLGY_REF_IMAGE_ID
-
+    reference_vnf_image_id = TPLGY_REF_IMAGE_ID
 
     if target_vnf_flavor_id == '':
         for requirement in TPLGY_REQUIERMENTS:
@@ -556,7 +547,7 @@ def main():
 
     tplgy.set_target_vnf_flavor_id(reference_vnf_flavor_id)
 
-    if reference_vnf_image_id == '' or  target_vnf_image_id == '' :
+    if reference_vnf_image_id == '' or target_vnf_image_id == '':
         image_name = TPLGY_IMAGE_NAME
         image_id = os_utils.get_image_id(glance,
                                          image_name)
@@ -591,7 +582,6 @@ def main():
                           tenant_name=ks_creds['tenant_name'],
                           auth_url=ks_creds['auth_url'])
 
-
     # ############### VNF TOPOLOGY DEPLOYMENT ################
 
     start_time_ts = time.time()
@@ -619,7 +609,6 @@ def main():
     # ############### VNF TEST ################
 
     test_vRouter(cfy)
-
 
     # ########### CLOUDIFY UNDEPLOYMENT #############
 
@@ -665,4 +654,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-

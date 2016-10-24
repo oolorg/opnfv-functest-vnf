@@ -1,5 +1,5 @@
-##!/usr/bin/python
-## coding: utf8
+#!/usr/bin/python
+# coding: utf8
 #######################################################################
 #
 # Copyright (c) 2016 Okinawa Open Laboratory
@@ -15,7 +15,8 @@ import yaml
 
 import functest.utils.functest_logger as ft_logger
 from functest.testcases.vnf.vRouter.utilvnf import utilvnf
-from functest.testcases.vnf.vRouter.vnf_controller.vnf_controller import VNF_controller
+from functest.testcases.vnf.vRouter.vnf_controller.vnf_controller import (
+    VNF_controller)
 
 """ logging configuration """
 logger = ft_logger.Logger("vRouter.test_exec").getLogger()
@@ -28,6 +29,7 @@ VNF_DATA_DIR = functest_yaml.get("general").get(
     "directories").get("dir_vRouter_data") + "/"
 PROTOCOL_STABLE_WAIT = functest_yaml.get("vRouter").get("general").get(
     "protocol_stable_wait")
+
 
 class Test_exec():
 
@@ -63,8 +65,7 @@ class Test_exec():
                                         target_parameter_file_path,
                                         prompt_file_path)
 
-
-    def config_reference_vnf(self, target_vnf, reference_vnf,test_kind):
+    def config_reference_vnf(self, target_vnf, reference_vnf, test_kind):
         logger.debug("Configuration to reference vnf")
         test_info = self.test_cmd_map_yaml[reference_vnf["os_type"]]
         test_cmd_file_path = test_info[test_kind]["pre_command"]

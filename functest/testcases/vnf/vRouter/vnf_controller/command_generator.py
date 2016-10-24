@@ -1,5 +1,5 @@
-##!/usr/bin/python
-## coding: utf8
+#!/usr/bin/python
+# coding: utf8
 #######################################################################
 #
 # Copyright (c) 2016 Okinawa Open Laboratory
@@ -14,6 +14,7 @@ import functest.utils.functest_logger as ft_logger
 
 """ logging configuration """
 logger = ft_logger.Logger("vRouter.command_gen").getLogger()
+
 
 class Command_generator:
     def __init__(self):

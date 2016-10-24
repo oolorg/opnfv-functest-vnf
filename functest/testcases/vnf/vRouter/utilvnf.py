@@ -18,7 +18,6 @@ from novaclient import client as novaclient
 
 REPO_PATH = os.environ['repos_dir'] + '/functest/'
 if not os.path.exists(REPO_PATH):
-    logger.error("Functest repository directory not found '%s'" % REPO_PATH)
     exit(-1)
 
 with open(os.environ["CONFIG_FUNCTEST_YAML"]) as f:
@@ -56,7 +55,7 @@ class utilvnf:
         d['region_name'] = self.region_name
         return d
 
-    def get_address(self, server_name, network_name ):
+    def get_address(self, server_name, network_name):
         creds = self.get_nova_credentials()
         nova_client = novaclient.Client(**creds)
         servers_list = nova_client.servers.list()
@@ -69,7 +68,7 @@ class utilvnf:
 
         return address
 
-    def reboot_v(self, server_name ):
+    def reboot_v(self, server_name):
         creds = self.get_nova_credentials()
         nova_client = novaclient.Client(**creds)
         servers_list = nova_client.servers.list()
@@ -89,7 +88,7 @@ class utilvnf:
         script += "cd " + testcase_dir + "; "
         script += "cfy status; "
         cmd = "/bin/bash -c '" + script + "'"
-        error = cfy.exec_cmd(cmd)
+        cfy.exec_cmd(cmd)
 
         f = open("output.txt",
                  'r')
@@ -106,12 +105,12 @@ class utilvnf:
         return manager_address
 
     def get_blueprint_outputs(self, cfy_manager_ip, deployment_name):
-        url ="http://"+ cfy_manager_ip + "/deployments/" + \
-             deployment_name + "/outputs"
+        url = "http://" + cfy_manager_ip + "/deployments/" + \
+              deployment_name + "/outputs"
 
         response = requests.get(url)
 
-        resp_data=response.json()
+        resp_data = response.json()
         data = resp_data["outputs"]
         return data
 
@@ -135,12 +134,13 @@ class utilvnf:
 
     def get_vnf_info_list(self, cfy_manager_ip, topology_deploy_name,
                           target_vnf_name):
-        network_list = self.get_blueprint_outputs_networks(cfy_manager_ip,
-                                                           topology_deploy_name)
+        network_list = self.get_blueprint_outputs_networks(
+                                                        cfy_manager_ip,
+                                                        topology_deploy_name)
         vnf_info_list = self.get_blueprint_outputs_vnfs(cfy_manager_ip,
                                                         topology_deploy_name)
         for vnf in vnf_info_list:
-            vnf_name = vnf["vnf_name"] 
+            vnf_name = vnf["vnf_name"]
             vnf["os_type"] = IMAGE["os_type"]
             vnf["user"] = IMAGE["user"]
             vnf["pass"] = IMAGE["pass"]

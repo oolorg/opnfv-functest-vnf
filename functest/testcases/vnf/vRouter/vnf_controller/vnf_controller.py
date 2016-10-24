@@ -1,5 +1,5 @@
-##!/usr/bin/python
-## coding: utf8
+#!/usr/bin/python
+# coding: utf8
 #######################################################################
 #
 # Copyright (c) 2016 Okinawa Open Laboratory
@@ -16,7 +16,8 @@ import yaml
 import functest.utils.functest_logger as ft_logger
 from functest.testcases.vnf.vRouter.utilvnf import utilvnf
 from functest.testcases.vnf.vRouter.vnf_controller.checker import Checker
-from functest.testcases.vnf.vRouter.vnf_controller.command_generator import Command_generator
+from functest.testcases.vnf.vRouter.vnf_controller.command_generator import (
+    Command_generator)
 from functest.testcases.vnf.vRouter.vnf_controller.ssh_client import SSH_Client
 
 """ logging configuration """
@@ -38,6 +39,7 @@ SSH_CONNECT_TIMEOUT = functest_yaml.get("vRouter").get("general").get(
 SSH_CONNECT_RETRY_COUNT = functest_yaml.get("vRouter").get("general").get(
     "ssh_connect_retry_count")
 
+
 class VNF_controller():
 
     def __init__(self, util_info):
@@ -53,7 +55,8 @@ class VNF_controller():
                                   self.credentials["region_name"])
 
     def command_gen_from_template(self, command_file_path, cmd_input_param):
-        (command_file_dir, command_file_name) = os.path.split(command_file_path)
+        (command_file_dir, command_file_name) = os.path.split(
+                                                    command_file_path)
         template = self.command_gen.load_template(command_file_dir,
                                                   command_file_name)
         return self.command_gen.command_create(template,
@@ -64,7 +67,7 @@ class VNF_controller():
         parameter_file = open(parameter_file_path,
                               'r')
         cmd_input_param = yaml.safe_load(parameter_file)
-        parameter_file.close() 
+        parameter_file.close()
 
         cmd_input_param["source_ip"] = source_vnf["data_plane_network_ip"]
         cmd_input_param["destination_ip"] = destination_vnf[
@@ -145,7 +148,7 @@ class VNF_controller():
                                        check_rules["command"],
                                        terminal_mode_prompt)
             res_data_list.append(res)
-            if res == None:
+            if res is None:
                 status = False
                 break
             checker.regexp_information(res,
@@ -154,13 +157,13 @@ class VNF_controller():
 
         ssh.close()
 
-        self.output_chcke_result_detail_data(res_data_list) 
+        self.output_chcke_result_detail_data(res_data_list)
 
         return status
 
     def output_chcke_result_detail_data(self, res_data_list):
         for res_data in res_data_list:
-             logger.debug(res_data)
+            logger.debug(res_data)
 
     def command_list_execute(self, ssh, commands, prompt):
         for command in commands:
@@ -184,9 +187,8 @@ class VNF_controller():
     def command_execute(self, ssh, command, prompt):
         res = ssh.send(command,
                        prompt)
-        if res == None:
+        if res is None:
             logger.info("retry send command : " + command)
             res = ssh.send(command,
                            prompt)
         return res
-
