@@ -163,7 +163,7 @@ vRouter:
             url: 'https://github.com/oolorg/opnfv-vnf-data.git'
             branch: 'master'
         reboot_wait: 30
-        protocol_stable_wait: 30
+        protocol_stable_wait: 60
         command_wait: 1
         ssh_connect_timeout: 15
         ssh_connect_retry_count: 20
