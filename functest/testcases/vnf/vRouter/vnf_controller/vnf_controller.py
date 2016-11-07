@@ -87,7 +87,7 @@ class VNF_controller():
                              SSH_CONNECT_RETRY_COUNT)
         if not result:
             logger.debug("try to vm reboot.")
-            self.util.reboot_v(source_vnf["vnf_name"])
+            self.util.reboot_vm(source_vnf["vnf_name"])
             time.sleep(REBOOT_WAIT)
             result = ssh.connect(SSH_CONNECT_TIMEOUT,
                                  SSH_CONNECT_RETRY_COUNT)

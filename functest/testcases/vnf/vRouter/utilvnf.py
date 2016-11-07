@@ -16,10 +16,6 @@ import yaml
 
 from novaclient import client as novaclient
 
-REPO_PATH = os.environ['repos_dir'] + '/functest/'
-if not os.path.exists(REPO_PATH):
-    exit(-1)
-
 with open(os.environ["CONFIG_FUNCTEST_YAML"]) as f:
     functest_yaml = yaml.safe_load(f)
 f.close()
@@ -68,7 +64,7 @@ class utilvnf:
 
         return address
 
-    def reboot_v(self, server_name):
+    def reboot_vm(self, server_name):
         creds = self.get_nova_credentials()
         nova_client = novaclient.Client(**creds)
         servers_list = nova_client.servers.list()
@@ -88,7 +84,9 @@ class utilvnf:
         script += "cd " + testcase_dir + "; "
         script += "cfy status; "
         cmd = "/bin/bash -c '" + script + "'"
-        cfy.exec_cmd(cmd)
+        error = cfy.exec_cmd(cmd)
+        if error is not False:
+            return None
 
         f = open("output.txt",
                  'r')
@@ -182,4 +180,4 @@ class utilvnf:
     def request_vnf_reboot(self, vnf_info_list):
         for vnf in vnf_info_list:
             self.logger.debug("reboot the " + vnf["vnf_name"])
-            self.reboot_v(vnf["vnf_name"])
+            self.reboot_vm(vnf["vnf_name"])
